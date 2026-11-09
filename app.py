@@ -1,35 +1,33 @@
 
 import os
-from datetime import date
-
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 
 # =========================================================
-# BUS ANALYTICS - CRACKER HEADS
+# BUS ANALYTICS | CRACKER HEADS
 # =========================================================
 
 st.set_page_config(
-    page_title="Bus Analytics | Cracker Heads",
+    page_title="BUS ANALYTICS | CRACKER HEADS",
     page_icon="🚌",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
 # -------------------- COLOUR THEME -----------------------
 
 BG = "#FFF8F6"
-BURGUNDY = "#7B243F"
-DARK = "#3E1727"
-ROSE = "#C85B70"
-PEACH = "#FCE9DC"
-PINK = "#FBE8E8"
-MUTED = "#806B70"
+BURGUNDY = "#76283F"
+DARK = "#452333"
+ROSE = "#C96F80"
+PEACH = "#FBE8DF"
+PINK = "#F9E8ED"
+GOLD = "#D6A66D"
+MUTED = "#806E73"
 BORDER = "#F0D9D9"
-GREEN = "#27834A"
+GREEN = "#31865B"
 
-# -------------------- CUSTOM CSS ------------------------
+# -------------------- CUSTOM CSS -------------------------
 
 st.markdown(f"""
 <style>
@@ -49,7 +47,7 @@ html, body, [class*="css"] {{
 }}
 
 [data-testid="stSidebar"] {{
-    background: linear-gradient(180deg,#FFF0ED,#F9E4E5);
+    background: linear-gradient(180deg,#FFF0EC,#F8E3E6);
     border-right: 1px solid {BORDER};
 }}
 
@@ -57,15 +55,17 @@ html, body, [class*="css"] {{
     color: {DARK};
 }}
 
-.brand-title {{
-    color: {BURGUNDY};
-    font-size: 25px;
-    font-weight: 800;
+.block-container {{
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
+    max-width: 1600px;
 }}
 
-.brand-sub {{
-    color: {MUTED};
-    font-size: 12px;
+.brand-title {{
+    color: {BURGUNDY};
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 1px;
 }}
 
 .page-title {{
@@ -74,20 +74,21 @@ html, body, [class*="css"] {{
     font-weight: 800;
 }}
 
-.section-head {{
+.section-title {{
     color: {BURGUNDY};
     font-size: 18px;
     font-weight: 800;
-    margin-top: 12px;
+    margin-top: 15px;
+    margin-bottom: 10px;
 }}
 
 .metric-card {{
     background: white;
     border: 1px solid {BORDER};
-    border-radius: 17px;
+    border-radius: 16px;
     padding: 16px;
     min-height: 105px;
-    box-shadow: 0 3px 12px rgba(103,42,61,0.04);
+    box-shadow: 0 3px 12px rgba(103,42,61,.04);
 }}
 
 .metric-label {{
@@ -100,27 +101,28 @@ html, body, [class*="css"] {{
     color: {BURGUNDY};
     font-size: 25px;
     font-weight: 800;
-    margin-top: 5px;
+    margin-top: 6px;
 }}
 
 .metric-note {{
     color: {GREEN};
     font-size: 11px;
+    margin-top: 3px;
 }}
 
-.soft-card {{
+.feature-card {{
     background: white;
     border: 1px solid {BORDER};
-    border-radius: 17px;
-    padding: 16px;
-    margin-bottom: 12px;
+    border-radius: 16px;
+    padding: 17px;
+    min-height: 115px;
 }}
 
 div.stButton > button {{
     background: {BURGUNDY};
     color: white;
-    border: 0;
-    border-radius: 12px;
+    border: none;
+    border-radius: 10px;
     font-weight: 700;
 }}
 
@@ -132,7 +134,7 @@ div.stButton > button:hover {{
 [data-testid="stMetric"] {{
     background: white;
     border: 1px solid {BORDER};
-    border-radius: 14px;
+    border-radius: 13px;
     padding: 12px;
 }}
 
@@ -143,43 +145,58 @@ footer {{
 #MainMenu {{
     visibility: hidden;
 }}
+
+@media (max-width: 900px) {{
+    .page-title {{
+        font-size: 24px;
+    }}
+    .metric-value {{
+        font-size: 20px;
+    }}
+    .block-container {{
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }}
+}}
 </style>
 """, unsafe_allow_html=True)
 
-# -------------------- IMAGE FILES -----------------------
+# -------------------- IMAGE HELPERS ----------------------
 
-def find_asset(name):
-    possible_names = [
-        f"assets/{name}.png.jpeg",
-        f"assets/{name}.png",
+def find_image(name):
+    possible = [
         f"{name}.png.jpeg",
-        f"{name}.png"
+        f"{name}.png",
+        f"assets/{name}.png.jpeg",
+        f"assets/{name}.png"
     ]
 
-    for path in possible_names:
+    for path in possible:
         if os.path.exists(path):
             return path
 
     return None
 
-def show_asset(name, **kwargs):
-    path = find_asset(name)
-
+def show_image(name, **kwargs):
+    path = find_image(name)
     if path:
         st.image(path, **kwargs)
 
 # -------------------- DATA PROCESSING --------------------
 
-def find_column(df, choices):
-    columns = {str(c).strip().lower(): c for c in df.columns}
+def find_column(df, names):
+    columns = {
+        str(c).strip().lower(): c
+        for c in df.columns
+    }
 
-    for choice in choices:
-        if choice in columns:
-            return columns[choice]
+    for name in names:
+        if name.lower() in columns:
+            return columns[name.lower()]
 
-    for choice in choices:
+    for name in names:
         for column in df.columns:
-            if choice in str(column).strip().lower():
+            if name.lower() in str(column).strip().lower():
                 return column
 
     return None
@@ -190,12 +207,22 @@ def prepare_data(raw):
 
     aliases = {
         "date": ["date", "ticket date", "journey date"],
+        "time": ["time", "ticket time"],
         "from": ["from stop", "from", "source", "origin"],
         "to": ["to stop", "to", "destination"],
-        "passengers": ["total psgr", "total passenger", "passengers", "psgr"],
-        "amount": ["coll amt", "collection amount", "revenue", "amount", "fare"],
-        "uncollected": ["uncoll amt", "uncollected amount"],
-        "ticket": ["ticket number", "ticket no", "ticket"]
+        "passengers": [
+            "total psgr", "total passenger",
+            "passengers", "psgr"
+        ],
+        "amount": [
+            "coll amt", "collection amount",
+            "collected amount", "revenue"
+        ],
+        "uncollected": [
+            "uncoll amt", "uncollected amount"
+        ],
+        "ticket": ["ticket number", "ticket no"],
+        "waybill": ["waybill number", "waybill no"]
     }
 
     cols = {
@@ -205,45 +232,43 @@ def prepare_data(raw):
 
     if cols["date"]:
         df["_date"] = pd.to_datetime(
-            df[cols["date"]], errors="coerce", dayfirst=True
+            df[cols["date"]],
+            errors="coerce",
+            dayfirst=True
         )
     else:
         df["_date"] = pd.NaT
 
-    if cols["passengers"]:
-        df["_passengers"] = pd.to_numeric(
-            df[cols["passengers"]], errors="coerce"
-        ).fillna(0)
-    else:
-        df["_passengers"] = 1
+    def numeric_column(column):
+        if not column:
+            return pd.Series(0.0, index=df.index)
 
-    if cols["amount"]:
-        df["_amount"] = pd.to_numeric(
-            df[cols["amount"]].astype(str)
+        cleaned = (
+            df[column].astype(str)
             .str.replace(",", "", regex=False)
-            .str.replace("₹", "", regex=False),
-            errors="coerce"
-        ).fillna(0)
-    else:
-        df["_amount"] = 0.0
+            .str.replace("₹", "", regex=False)
+            .str.strip()
+        )
 
-    if cols["uncollected"]:
-        df["_uncollected"] = pd.to_numeric(
-            df[cols["uncollected"]].astype(str)
-            .str.replace(",", "", regex=False)
-            .str.replace("₹", "", regex=False),
-            errors="coerce"
+        return pd.to_numeric(
+            cleaned, errors="coerce"
         ).fillna(0)
-    else:
-        df["_uncollected"] = 0.0
+
+    df["_passengers"] = (
+        numeric_column(cols["passengers"])
+        if cols["passengers"] else 1
+    )
+
+    df["_amount"] = numeric_column(cols["amount"])
+    df["_uncollected"] = numeric_column(cols["uncollected"])
 
     df["_from"] = (
-        df[cols["from"]].astype(str).str.strip()
+        df[cols["from"]].fillna("Unknown").astype(str).str.strip()
         if cols["from"] else "Unknown"
     )
 
     df["_to"] = (
-        df[cols["to"]].astype(str).str.strip()
+        df[cols["to"]].fillna("Unknown").astype(str).str.strip()
         if cols["to"] else "Unknown"
     )
 
@@ -254,30 +279,17 @@ def prepare_data(raw):
         if cols["ticket"] else df.index.astype(str)
     )
 
-    return df
-
-def demo_data():
-    rows = [
-        ("2026-10-01", "Ballari", "Hubli", 2, 520),
-        ("2026-10-01", "Ballari", "Hyderabad", 3, 900),
-        ("2026-10-02", "Mysore", "Bangalore", 2, 460),
-        ("2026-10-02", "Bangalore", "Ballari", 1, 350),
-        ("2026-10-03", "Hubli", "Bangalore", 2, 620),
-        ("2026-10-03", "Ballari", "Hubli", 1, 260),
-        ("2026-10-04", "Ballari", "Hyderabad", 2, 600),
-        ("2026-10-04", "Mysore", "Bangalore", 3, 690),
-        ("2026-10-05", "Bangalore", "Ballari", 2, 700),
-        ("2026-10-05", "Hubli", "Bangalore", 1, 310),
-        ("2026-10-06", "Ballari", "Hubli", 3, 780),
-        ("2026-10-07", "Mysore", "Bangalore", 2, 460)
-    ]
-
-    df = pd.DataFrame(
-        rows,
-        columns=["date", "from", "to", "passengers", "amount"]
+    df["_waybill"] = (
+        df[cols["waybill"]].astype(str)
+        if cols["waybill"] else "Not available"
     )
 
-    return prepare_data(df)
+    df["_time"] = (
+        df[cols["time"]].astype(str)
+        if cols["time"] else "Not available"
+    )
+
+    return df
 
 def money(value):
     return f"₹{value:,.0f}"
@@ -287,37 +299,35 @@ def money(value):
 if "page" not in st.session_state:
     st.session_state.page = "Home"
 
-if "uploaded_df" not in st.session_state:
-    st.session_state.uploaded_df = None
+if "uploaded_data" not in st.session_state:
+    st.session_state.uploaded_data = None
 
-if "bookings" not in st.session_state:
-    st.session_state.bookings = []
-
-# -------------------- LOAD DATA --------------------------
+# -------------------- LOAD ACTUAL DATA -------------------
 
 DATA_PATH = "data/tickets.csv"
 
-if st.session_state.uploaded_df is not None:
-    data = prepare_data(st.session_state.uploaded_df)
+if st.session_state.uploaded_data is not None:
+    data = prepare_data(st.session_state.uploaded_data)
     data_source = "Uploaded dataset"
 
 elif os.path.exists(DATA_PATH):
     try:
         data = prepare_data(pd.read_csv(DATA_PATH))
-        data_source = "Repository dataset"
-    except Exception:
-        data = demo_data()
-        data_source = "Sample demonstration data"
+        data_source = "Repository ticket dataset"
+    except Exception as error:
+        st.error(f"Could not read ticket dataset: {error}")
+        data = pd.DataFrame()
+        data_source = "Dataset error"
 
 else:
-    data = demo_data()
-    data_source = "Sample demonstration data"
+    data = pd.DataFrame()
+    data_source = "Dataset not found"
 
-# -------------------- NAVIGATION ------------------------
+# -------------------- NAVIGATION -------------------------
 
 PAGES = [
     "Home",
-    "Book Ticket",
+    "Ticket Records",
     "Dashboard",
     "Route Analysis",
     "Revenue Analysis",
@@ -328,13 +338,13 @@ PAGES = [
     "Upload Dataset"
 ]
 
-# -------------------- SIDEBAR ---------------------------
+# -------------------- SIDEBAR ----------------------------
 
 with st.sidebar:
 
-    show_asset("logo", use_container_width=True)
+    show_image("logo", use_container_width=True)
 
-    if not find_asset("logo"):
+    if not find_image("logo"):
         st.markdown(
             '<div class="brand-title">BUS ANALYTICS</div>',
             unsafe_allow_html=True
@@ -343,103 +353,108 @@ with st.sidebar:
 
     st.markdown("---")
 
-    selected_page = st.radio(
+    selected = st.radio(
         "NAVIGATION",
         PAGES,
         index=PAGES.index(st.session_state.page),
         key="navigation"
     )
 
-    st.session_state.page = selected_page
+    st.session_state.page = selected
 
     st.markdown("---")
-    st.caption("BOOK  •  ANALYZE  •  PREDICT")
+    st.caption("BOOK • ANALYZE • PREDICT")
     st.caption("Created by CRACKER HEADS ♡")
 
 # -------------------- COMMON STATISTICS -----------------
 
 total_tickets = len(data)
-total_passengers = int(data["_passengers"].sum())
-total_revenue = float(data["_amount"].sum())
-total_uncollected = float(data["_uncollected"].sum())
-active_routes = int(data["_route"].nunique())
 
-route_counts = (
-    data.groupby("_route").size()
-    .sort_values(ascending=False)
-)
-
-valid_dates = data.dropna(subset=["_date"])
+if not data.empty:
+    total_passengers = int(data["_passengers"].sum())
+    total_revenue = float(data["_amount"].sum())
+    total_uncollected = float(data["_uncollected"].sum())
+    active_routes = int(data["_route"].nunique())
+else:
+    total_passengers = 0
+    total_revenue = 0
+    total_uncollected = 0
+    active_routes = 0
 
 # -------------------- HOME PAGE -------------------------
 
 if st.session_state.page == "Home":
 
-    show_asset("bus_banner", use_container_width=True)
+    show_image("bus_banner", use_container_width=True)
 
-    if not find_asset("bus_banner"):
-        st.markdown("""
-        <div style="background:#FBE8E8;padding:30px;border-radius:20px;">
-        <h1 style="color:#7B243F;">Welcome to Bus Analytics</h1>
-        Intelligent Bus Ticket Data Platform
+    if not find_image("bus_banner"):
+        st.markdown(f"""
+        <div class="feature-card">
+            <h1 style="color:{BURGUNDY};">Welcome to Bus Analytics</h1>
+            Intelligent Bus Ticket Data Platform
         </div>
         """, unsafe_allow_html=True)
 
-    if data_source == "Sample demonstration data":
-        st.info(
-            "Showing sample data for demonstration. "
-            "Upload your actual ticket CSV to see real analytics."
-        )
+    st.caption(f"Data source: {data_source}")
 
-    else:
-        st.caption(f"Data source: {data_source}")
+    if data.empty:
+        st.warning("No ticket records loaded. Check data/tickets.csv.")
 
-    st.markdown("### Overview")
+    st.markdown(
+        '<div class="section-title">Overview</div>',
+        unsafe_allow_html=True
+    )
 
-    a, b, c, d = st.columns(4)
+    columns = st.columns(4)
 
     metrics = [
-        (a, "TOTAL TICKETS", f"{total_tickets:,}", "Ticket records"),
-        (b, "TOTAL REVENUE", money(total_revenue), "Collected amount"),
-        (c, "TOTAL PASSENGERS", f"{total_passengers:,}", "Passenger count"),
-        (d, "ACTIVE ROUTES", f"{active_routes:,}", "Unique routes")
+        ("TOTAL TICKETS", f"{total_tickets:,}", "Ticket records"),
+        ("TOTAL REVENUE", money(total_revenue), "Collected amount"),
+        ("TOTAL PASSENGERS", f"{total_passengers:,}", "Passenger count"),
+        ("ACTIVE ROUTES", f"{active_routes:,}", "Unique routes")
     ]
 
-    for col, label, value, note in metrics:
+    for col, item in zip(columns, metrics):
         with col:
             st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-label">{label}</div>
-                <div class="metric-value">{value}</div>
-                <div class="metric-note">{note}</div>
+                <div class="metric-label">{item[0]}</div>
+                <div class="metric-value">{item[1]}</div>
+                <div class="metric-note">{item[2]}</div>
             </div>
             """, unsafe_allow_html=True)
-
-    st.write("")
 
     left, right = st.columns([1.15, 1])
 
     with left:
         st.markdown(
-            '<div class="section-head">Ticket Bookings Trend</div>',
+            '<div class="section-title">Ticket Bookings Trend</div>',
             unsafe_allow_html=True
         )
 
-        if not valid_dates.empty:
+        if not data.empty and data["_date"].notna().any():
+
+            dated = data.dropna(subset=["_date"])
+
             trend = (
-                valid_dates.groupby(valid_dates["_date"].dt.date)
-                .size().reset_index(name="Tickets")
+                dated.groupby(dated["_date"].dt.date)
+                .size()
+                .reset_index(name="Tickets")
             )
 
+            trend.columns = ["Date", "Tickets"]
+
             fig = px.line(
-                trend, x="_date", y="Tickets",
+                trend,
+                x="Date",
+                y="Tickets",
                 markers=True
-            ) if "_date" in trend.columns else px.line(trend)
+            )
 
             fig.update_traces(
                 line_color=ROSE,
                 fill="tozeroy",
-                fillcolor="rgba(200,91,112,0.15)"
+                fillcolor="rgba(201,111,128,0.13)"
             )
 
             fig.update_layout(
@@ -449,27 +464,30 @@ if st.session_state.page == "Home":
             )
 
             st.plotly_chart(fig, use_container_width=True)
+
         else:
-            st.info("Date information is unavailable.")
+            st.info("Date information is not available.")
 
     with right:
         st.markdown(
-            '<div class="section-head">Top Routes by Tickets</div>',
+            '<div class="section-title">Top Routes by Tickets</div>',
             unsafe_allow_html=True
         )
 
-        top = route_counts.head(5).reset_index()
-        top.columns = ["Route", "Tickets"]
+        if not data.empty:
+            top = data["_route"].value_counts().head(5)
+            route_df = top.reset_index()
+            route_df.columns = ["Route", "Tickets"]
 
-        if not top.empty:
             fig = px.bar(
-                top.sort_values("Tickets"),
+                route_df.sort_values("Tickets"),
                 x="Tickets",
                 y="Route",
                 orientation="h"
             )
 
             fig.update_traces(marker_color=ROSE)
+
             fig.update_layout(
                 height=300,
                 paper_bgcolor="rgba(0,0,0,0)",
@@ -477,103 +495,108 @@ if st.session_state.page == "Home":
             )
 
             st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Route information is not available.")
 
-    st.markdown("### Explore Bus Analytics")
+    st.markdown("### Explore Analytics")
 
     c1, c2, c3 = st.columns(3)
 
-    cards = [
+    features = [
         (c1, "Demand Prediction", "Explore historical demand patterns."),
-        (c2, "Smart Insights", "View summaries from ticket data."),
+        (c2, "Smart Insights", "Understand ticket data observations."),
         (c3, "Generate Reports", "Download your analysis.")
     ]
 
-    for col, title, description in cards:
+    for col, title, description in features:
         with col:
-            st.markdown(
-                f'<div class="soft-card"><b>{title}</b><br>{description}</div>',
-                unsafe_allow_html=True
-            )
+            st.markdown(f"""
+            <div class="feature-card">
+                <b style="color:{BURGUNDY};">{title}</b><br>
+                {description}
+            </div>
+            """, unsafe_allow_html=True)
 
-            if st.button(f"Open {title}", key=title):
+            if st.button("Explore", key=f"home_{title}"):
                 destination = (
-                    "Reports" if title == "Generate Reports" else title
+                    "Reports"
+                    if title == "Generate Reports"
+                    else title
                 )
                 st.session_state.page = destination
                 st.rerun()
 
-# -------------------- BOOK TICKET -----------------------
+# -------------------- TICKET RECORDS --------------------
 
-elif st.session_state.page == "Book Ticket":
+elif st.session_state.page == "Ticket Records":
 
-    st.markdown('<div class="page-title">Book a Ticket</div>', unsafe_allow_html=True)
-
-    st.warning(
-        "This is a demonstration booking form. "
-        "It does not reserve real seats or process payments."
+    st.markdown(
+        '<div class="page-title">Ticket Records</div>',
+        unsafe_allow_html=True
     )
 
-    with st.form("booking_form"):
+    st.caption("Search and inspect historical bus ticket records.")
 
-        left, right = st.columns(2)
+    if data.empty:
+        st.warning("No ticket records available.")
+    else:
+        search = st.text_input(
+            "Search by ticket number, waybill, stop or route"
+        )
 
-        with left:
-            name = st.text_input("Passenger Name")
-            source = st.text_input("From")
-            journey_date = st.date_input(
-                "Journey Date",
-                min_value=date.today()
+        filtered = data.copy()
+
+        if search:
+            searchable = (
+                filtered.astype(str)
+                .agg(" ".join, axis=1)
+                .str.contains(search, case=False, na=False)
             )
+            filtered = filtered[searchable]
 
-        with right:
-            phone = st.text_input("Phone Number")
-            destination = st.text_input("To")
-            passengers = st.number_input(
-                "Number of Passengers",
-                min_value=1,
-                max_value=6,
-                value=1
-            )
+        st.write(f"Records found: {len(filtered):,}")
 
-        submit = st.form_submit_button("Submit Demo Booking")
+        display_columns = [
+            c for c in [
+                "_waybill", "_ticket", "_from", "_to",
+                "_date", "_time", "_passengers",
+                "_amount", "_uncollected"
+            ] if c in filtered.columns
+        ]
 
-    if submit:
+        display = filtered[display_columns].rename(columns={
+            "_waybill": "Waybill Number",
+            "_ticket": "Ticket Number",
+            "_from": "From Stop",
+            "_to": "To Stop",
+            "_date": "Date",
+            "_time": "Time",
+            "_passengers": "Passengers",
+            "_amount": "Collected Amount",
+            "_uncollected": "Uncollected Amount"
+        })
 
-        if not name.strip() or not source.strip() or not destination.strip():
-            st.error("Please fill in the required details.")
-
-        else:
-            booking = {
-                "Booking ID": f"DEMO-{len(st.session_state.bookings)+1:04d}",
-                "Passenger": name,
-                "Phone": phone,
-                "From": source,
-                "To": destination,
-                "Date": str(journey_date),
-                "Passengers": passengers,
-                "Status": "Demo only"
-            }
-
-            st.session_state.bookings.append(booking)
-
-            st.success(f"Demo booking created: {booking['Booking ID']}")
-            st.dataframe(
-                pd.DataFrame([booking]),
-                use_container_width=True
-            )
-
-    if st.session_state.bookings:
-        st.markdown("### Demo Booking History")
         st.dataframe(
-            pd.DataFrame(st.session_state.bookings),
-            use_container_width=True
+            display,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        st.download_button(
+            "Download filtered records",
+            data=display.to_csv(index=False).encode("utf-8"),
+            file_name="filtered_ticket_records.csv",
+            mime="text/csv"
         )
 
 # -------------------- DASHBOARD -------------------------
 
 elif st.session_state.page == "Dashboard":
 
-    st.markdown('<div class="page-title">Analytics Dashboard</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="page-title">Analytics Dashboard</div>',
+        unsafe_allow_html=True
+    )
 
     st.caption(f"Data source: {data_source}")
 
@@ -581,129 +604,201 @@ elif st.session_state.page == "Dashboard":
 
     a.metric("Total Tickets", f"{total_tickets:,}")
     b.metric("Passengers", f"{total_passengers:,}")
-    c.metric("Revenue", money(total_revenue))
-    d.metric("Uncollected", money(total_uncollected))
+    c.metric("Collected Revenue", money(total_revenue))
+    d.metric("Uncollected Amount", money(total_uncollected))
 
-    st.markdown("### Ticket Records")
-    st.dataframe(data.head(100), use_container_width=True)
+    if not data.empty:
+        st.markdown("### Ticket Records Preview")
+        st.dataframe(data.head(100), use_container_width=True)
 
 # -------------------- ROUTE ANALYSIS --------------------
 
 elif st.session_state.page == "Route Analysis":
 
-    st.markdown('<div class="page-title">Route Analysis</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="page-title">Route Analysis</div>',
+        unsafe_allow_html=True
+    )
 
-    summary = data.groupby("_route").agg(
-        Tickets=("_ticket", "count"),
-        Passengers=("_passengers", "sum"),
-        Revenue=("_amount", "sum")
-    ).reset_index()
+    if data.empty:
+        st.warning("No route data available.")
+    else:
+        summary = data.groupby("_route").agg(
+            Tickets=("_ticket", "count"),
+            Passengers=("_passengers", "sum"),
+            Revenue=("_amount", "sum")
+        ).reset_index()
 
-    summary.rename(columns={"_route": "Route"}, inplace=True)
+        summary.rename(
+            columns={"_route": "Route"},
+            inplace=True
+        )
 
-    st.dataframe(summary, use_container_width=True)
+        summary = summary.sort_values(
+            "Tickets", ascending=False
+        )
 
-    if not summary.empty:
-        fig = px.bar(summary, x="Route", y="Tickets", color="Revenue")
+        st.dataframe(summary, use_container_width=True)
+
+        fig = px.bar(
+            summary.head(10),
+            x="Route",
+            y="Tickets",
+            color="Revenue"
+        )
+
+        fig.update_layout(
+            height=400,
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)"
+        )
+
         st.plotly_chart(fig, use_container_width=True)
 
 # -------------------- REVENUE ANALYSIS ------------------
 
 elif st.session_state.page == "Revenue Analysis":
 
-    st.markdown('<div class="page-title">Revenue Analysis</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="page-title">Revenue Analysis</div>',
+        unsafe_allow_html=True
+    )
 
     a, b = st.columns(2)
+
     a.metric("Collected Revenue", money(total_revenue))
     b.metric("Uncollected Amount", money(total_uncollected))
 
-    summary = (
-        data.groupby("_route")["_amount"]
-        .sum().reset_index()
-    )
+    if not data.empty:
+        summary = (
+            data.groupby("_route")["_amount"]
+            .sum()
+            .reset_index()
+        )
 
-    summary.columns = ["Route", "Revenue"]
+        summary.columns = ["Route", "Revenue"]
+        summary = summary.sort_values(
+            "Revenue", ascending=False
+        )
 
-    fig = px.bar(summary, x="Route", y="Revenue", color="Revenue")
-    st.plotly_chart(fig, use_container_width=True)
-    st.dataframe(summary, use_container_width=True)
+        fig = px.bar(
+            summary.head(10),
+            x="Route",
+            y="Revenue",
+            color="Revenue"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+        st.dataframe(summary, use_container_width=True)
 
 # -------------------- PASSENGER INSIGHTS ----------------
 
 elif st.session_state.page == "Passenger Insights":
 
-    st.markdown('<div class="page-title">Passenger Insights</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="page-title">Passenger Insights</div>',
+        unsafe_allow_html=True
+    )
 
     st.metric("Total Passengers", f"{total_passengers:,}")
 
-    summary = (
-        data.groupby("_route")["_passengers"]
-        .sum().reset_index()
-    )
+    if not data.empty:
+        summary = (
+            data.groupby("_route")["_passengers"]
+            .sum()
+            .reset_index()
+        )
 
-    summary.columns = ["Route", "Passengers"]
+        summary.columns = ["Route", "Passengers"]
 
-    fig = px.bar(
-        summary,
-        x="Passengers",
-        y="Route",
-        orientation="h"
-    )
+        summary = summary.sort_values(
+            "Passengers", ascending=False
+        )
 
-    fig.update_traces(marker_color=ROSE)
-    st.plotly_chart(fig, use_container_width=True)
-    st.dataframe(summary, use_container_width=True)
+        fig = px.bar(
+            summary.head(10),
+            x="Passengers",
+            y="Route",
+            orientation="h"
+        )
+
+        fig.update_traces(marker_color=ROSE)
+
+        st.plotly_chart(fig, use_container_width=True)
+        st.dataframe(summary, use_container_width=True)
 
 # -------------------- DEMAND PREDICTION -----------------
 
 elif st.session_state.page == "Demand Prediction":
 
-    st.markdown('<div class="page-title">Demand Prediction</div>', unsafe_allow_html=True)
-
-    st.info(
-        "This prototype uses a simple historical average. "
-        "It is not yet a validated machine-learning forecast."
+    st.markdown(
+        '<div class="page-title">Demand Prediction</div>',
+        unsafe_allow_html=True
     )
 
-    if not valid_dates.empty:
+    st.info(
+        "This prototype uses historical ticket counts "
+        "to calculate a baseline estimate. It is not yet "
+        "a validated machine-learning forecast."
+    )
+
+    if not data.empty and data["_date"].notna().any():
+
+        dated = data.dropna(subset=["_date"])
 
         daily = (
-            valid_dates.groupby(valid_dates["_date"].dt.date)
-            .size().reset_index(name="Tickets")
+            dated.groupby(dated["_date"].dt.date)
+            .size()
+            .reset_index(name="Tickets")
         )
 
-        daily["7-day Average"] = (
+        daily["7-Day Average"] = (
             daily["Tickets"].rolling(7, min_periods=1).mean()
         )
 
+        daily.columns = [
+            "Date", "Tickets", "7-Day Average"
+        ]
+
         st.line_chart(
-            daily.set_index("_date")[["Tickets", "7-day Average"]]
+            daily.set_index("Date")
         )
 
         estimate = daily["Tickets"].tail(7).mean()
 
-        st.metric("Baseline Daily Estimate", f"{estimate:.1f} tickets")
+        st.metric(
+            "Baseline Daily Estimate",
+            f"{estimate:.1f} tickets"
+        )
 
     else:
-        st.warning("A valid date column is required.")
+        st.warning("Valid ticket dates are required.")
 
 # -------------------- SMART INSIGHTS --------------------
 
 elif st.session_state.page == "Smart Insights":
 
-    st.markdown('<div class="page-title">Smart Insights</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="page-title">Smart Insights</div>',
+        unsafe_allow_html=True
+    )
 
-    st.caption("Automatically calculated observations from the dataset.")
+    st.caption(
+        "Automatically calculated observations from ticket records."
+    )
 
-    if not route_counts.empty:
-        st.success(
-            f"Most frequent route: {route_counts.index[0]} "
-            f"({route_counts.iloc[0]} ticket records)"
-        )
+    if not data.empty:
 
-    if total_tickets:
+        routes = data["_route"].value_counts()
+
+        if not routes.empty:
+            st.success(
+                f"Most frequent route: {routes.index[0]} "
+                f"with {routes.iloc[0]:,} ticket records."
+            )
+
         st.write(
-            f"Average passengers per ticket record: "
+            f"Average passengers per record: "
             f"{total_passengers / total_tickets:.2f}"
         )
 
@@ -712,51 +807,76 @@ elif st.session_state.page == "Smart Insights":
             f"{money(total_revenue / total_tickets)}"
         )
 
-    st.write(f"Total uncollected amount: {money(total_uncollected)}")
+        st.write(
+            f"Total uncollected amount: "
+            f"{money(total_uncollected)}"
+        )
 
-    if data_source == "Sample demonstration data":
-        st.warning("These insights currently use sample data.")
+        st.write(
+            f"Number of unique routes: {active_routes}"
+        )
+
+    else:
+        st.warning("No dataset available.")
 
 # -------------------- REPORTS ---------------------------
 
 elif st.session_state.page == "Reports":
 
-    st.markdown('<div class="page-title">Generate Reports</div>', unsafe_allow_html=True)
-
-    st.download_button(
-        "Download Ticket Data CSV",
-        data=data.to_csv(index=False).encode("utf-8"),
-        file_name="bus_analytics_ticket_data.csv",
-        mime="text/csv"
+    st.markdown(
+        '<div class="page-title">Generate Reports</div>',
+        unsafe_allow_html=True
     )
 
-    summary = data.groupby("_route").agg(
-        Tickets=("_ticket", "count"),
-        Passengers=("_passengers", "sum"),
-        Revenue=("_amount", "sum"),
-        Uncollected=("_uncollected", "sum")
-    ).reset_index()
+    if not data.empty:
 
-    summary.rename(columns={"_route": "Route"}, inplace=True)
+        st.download_button(
+            "Download Ticket Records CSV",
+            data=data.to_csv(index=False).encode("utf-8"),
+            file_name="bus_analytics_ticket_records.csv",
+            mime="text/csv"
+        )
 
-    st.download_button(
-        "Download Route Summary CSV",
-        data=summary.to_csv(index=False).encode("utf-8"),
-        file_name="bus_analytics_route_summary.csv",
-        mime="text/csv"
-    )
+        summary = data.groupby("_route").agg(
+            Tickets=("_ticket", "count"),
+            Passengers=("_passengers", "sum"),
+            Revenue=("_amount", "sum"),
+            Uncollected=("_uncollected", "sum")
+        ).reset_index()
 
-    st.dataframe(summary, use_container_width=True)
+        summary.rename(
+            columns={"_route": "Route"},
+            inplace=True
+        )
+
+        st.download_button(
+            "Download Route Summary CSV",
+            data=summary.to_csv(index=False).encode("utf-8"),
+            file_name="bus_analytics_route_summary.csv",
+            mime="text/csv"
+        )
+
+        st.dataframe(summary, use_container_width=True)
+
+    else:
+        st.warning("No data available for reports.")
 
 # -------------------- UPLOAD DATASET --------------------
 
 elif st.session_state.page == "Upload Dataset":
 
-    st.markdown('<div class="page-title">Upload Dataset</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="page-title">Upload Dataset</div>',
+        unsafe_allow_html=True
+    )
+
+    st.write(
+        "Upload a CSV file containing historical bus ticket records."
+    )
 
     st.info(
-        "Upload a CSV file of bus ticket records. "
-        "This upload is available for the current app session."
+        "Session uploads are temporary. For permanent cloud data, "
+        "add the CSV to the repository at data/tickets.csv."
     )
 
     uploaded = st.file_uploader(
@@ -767,38 +887,45 @@ elif st.session_state.page == "Upload Dataset":
     if uploaded is not None:
 
         try:
-            new_df = pd.read_csv(uploaded)
+            new_data = pd.read_csv(uploaded)
 
-            st.session_state.uploaded_df = new_df
+            st.session_state.uploaded_data = new_data
 
             st.success(
-                f"Successfully loaded {len(new_df)} records."
+                f"Loaded {len(new_data):,} rows "
+                f"and {len(new_data.columns)} columns."
             )
 
             st.markdown("### Dataset Preview")
-            st.dataframe(new_df.head(30), use_container_width=True)
+
+            st.dataframe(
+                new_data.head(30),
+                use_container_width=True
+            )
 
             if st.button("Apply Uploaded Dataset"):
                 st.rerun()
 
         except Exception as error:
-            st.error(f"Unable to read file: {error}")
+            st.error(f"Could not read CSV: {error}")
 
-    if st.session_state.uploaded_df is not None:
+    if st.session_state.uploaded_data is not None:
 
         if st.button("Clear Uploaded Dataset"):
-            st.session_state.uploaded_df = None
+            st.session_state.uploaded_data = None
             st.rerun()
 
 # -------------------- FOOTER ----------------------------
 
 st.markdown(f"""
-<hr style="border-top:1px solid {BORDER};">
+<hr style="border:0;border-top:1px solid {BORDER};margin-top:30px;">
 
-<div style="text-align:center;color:{MUTED};padding:15px;">
+<div style="text-align:center;color:{MUTED};padding:15px;font-size:12px;">
     Created by
-    <b style="color:{BURGUNDY};">CRACKER HEADS ♡</b>
+    <b style="color:{BURGUNDY};letter-spacing:1px;">
+        CRACKER HEADS ♡
+    </b>
     <br>
-    Bus Analytics | Intelligent Bus Ticket Data Platform
+    BUS ANALYTICS | Intelligent Bus Ticket Data Platform
 </div>
 """, unsafe_allow_html=True)
