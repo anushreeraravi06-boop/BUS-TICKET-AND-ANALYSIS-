@@ -405,68 +405,85 @@ section.main {{
 }
 
 /* SMART INSIGHTS: readable expandable sections */
-[data-testid="stExpander"] {
+
+/* Strong readable navigation labels */
+[data-testid="stSidebar"] button,
+[data-testid="stSidebar"] button *,
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"],
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] * {{
+    color: #64243D !important;
+    opacity: 1 !important;
+}}
+[data-testid="stSidebar"] button[kind="primary"],
+[data-testid="stSidebar"] button[kind="primary"] * {{
+    color: #FFFFFF !important;
+}}
+[data-testid="stSidebar"] button[kind="secondary"] {{
+    background: rgba(255,255,255,.46) !important;
+    border: 1px solid #E8CCD2 !important;
+}}
+[data-testid="stSidebar"] button[kind="secondary"]:hover {{
+    background: #F4D5D8 !important;
+}}
+
+/* Arrow-style expandable feature panels */
+[data-testid="stExpander"] {{
     background: #FFFFFF !important;
     border: 1px solid #E7C9D0 !important;
     border-radius: 14px !important;
     margin: 10px 0 !important;
     overflow: hidden !important;
-}
+}}
 [data-testid="stExpander"] details,
 [data-testid="stExpander"] details > summary,
-[data-testid="stExpander"] details > div {
+[data-testid="stExpander"] details > div {{
     background: #FFFFFF !important;
     color: #351324 !important;
-}
+}}
 [data-testid="stExpander"] summary,
 [data-testid="stExpander"] summary p,
 [data-testid="stExpander"] summary span,
-[data-testid="stExpander"] summary svg {
+[data-testid="stExpander"] summary svg {{
     color: #64243D !important;
     fill: #64243D !important;
     font-weight: 700 !important;
     opacity: 1 !important;
-}
-[data-testid="stExpander"] summary {
+}}
+[data-testid="stExpander"] summary {{
     padding: 12px 14px !important;
-}
+}}
 [data-testid="stExpander"] [data-testid="stMarkdownContainer"],
 [data-testid="stExpander"] [data-testid="stMarkdownContainer"] p,
 [data-testid="stExpander"] [data-testid="stMarkdownContainer"] li,
 [data-testid="stExpander"] label,
-[data-testid="stExpander"] span {
+[data-testid="stExpander"] span {{
     color: #382832 !important;
     opacity: 1 !important;
-}
-[data-testid="stExpander"] .card {
+}}
+[data-testid="stExpander"] .card {{
     background: #FFF8F5 !important;
     border: 1px solid #EAD9DD !important;
     color: #382832 !important;
-}
-[data-testid="stExpander"] .card h3 {
+}}
+[data-testid="stExpander"] .card h3 {{
     color: #64243D !important;
-}
-[data-testid="stExpander"] .card p,
-[data-testid="stExpander"] .card b {
+}}
+[data-testid="stExpander"] .card p {{
     color: #624D57 !important;
-}
-[data-testid="stAlert"] {
+}}
+[data-testid="stAlert"] {{
     background: #FFF1F0 !important;
     border: 1px solid #EACBD1 !important;
     color: #351324 !important;
-}
+}}
 [data-testid="stAlert"] p,
 [data-testid="stAlert"] span,
-[data-testid="stAlert"] div {
+[data-testid="stAlert"] div {{
     color: #351324 !important;
     opacity: 1 !important;
-}
-[data-testid="stExpander"] [data-testid="stMetric"] {
-    background: #FFF8F5 !important;
-}
-[data-testid="stExpander"] [data-testid="stDataFrame"] {
-    background: #FFFFFF !important;
-}
+}}
+   
+ 
 </style>
 """, unsafe_allow_html=True)
 
