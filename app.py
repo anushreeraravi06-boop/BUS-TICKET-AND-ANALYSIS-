@@ -647,16 +647,51 @@ if page == "Home":
 elif page == "Ticket Records":
     st.title("Ticket Records")
     st.caption("Search, review and export the ticket records in your dataset.")
+
     if not data.empty:
-                search = st.text_input("Search by ticket, waybill, route or stop", placeholder="Type a ticket number, route or stop...")
+        search = st.text_input(
+            "Search by ticket, waybill, route or stop",
+            placeholder="Type a ticket number, route or stop..."
+        )
+
         view = data.copy()
+
         if search.strip():
-            mask = view.astype(str).apply(lambda col: col.str.contains(search, case=False, na=False)).any(axis=1)
+            mask = view.astype(str).apply(
+                lambda col: col.str.contains(
+                    search, case=False, na=False
+                )
+            ).any(axis=1)
+
             view = view[mask]
-        display = view.rename(columns={"waybill":"Waybill Number", "ticket":"Ticket Number", "from":"From Stop", "to":"To Stop", "date":"Date", "time":"Time", "passengers":"Passengers", "collected":"Collected Amount (₹)", "uncollected":"Uncollected Amount (₹)"})
+
         st.write(f"**{len(view):,}** records found")
-        st.dataframe(display[["waybill","ticket","from","to","date","time","passengers","collected","uncollected"]].rename(columns={"waybill":"Waybill Number", "ticket":"Ticket Number", "from":"From Stop", "to":"To Stop", "date":"Date", "time":"Time", "passengers":"Passengers", "collected":"Collected Amount (₹)", "uncollected":"Uncollected Amount (₹)"}), use_container_width=True, hide_index=True)
-        st.download_button("Download filtered records (CSV)", view.to_csv(index=False).encode("utf-8"), "ticket_records.csv", "text/csv")
+
+        display = view.rename(columns={
+            "waybill": "Waybill Number",
+            "ticket": "Ticket Number",
+            "from": "From Stop",
+            "to": "To Stop",
+            "date": "Date",
+            "time": "Time",
+            "passengers": "Passengers",
+            "collected": "Collected Amount (₹)",
+            "uncollected": "Uncollected Amount (₹)"
+        })
+
+        st.dataframe(
+            display,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        st.download_button(
+            "Download filtered records (CSV)",
+            view.to_csv(index=False).encode("utf-8"),
+            "ticket_records.csv",
+            "text/csv"
+        )
+
     else:
         st.info("Upload a CSV dataset to view ticket records.")
 
