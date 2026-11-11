@@ -1,7 +1,5 @@
 from pathlib import Path
 from datetime import datetime
-import base64
-import time
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -10,7 +8,6 @@ import streamlit as st
 
 # ------------------------------------------------------------
 # BUS ANALYTICS | CRACKER HEADS
-# Responsive Streamlit dashboard using the approved prototype
 # ------------------------------------------------------------
 
 st.set_page_config(
@@ -23,7 +20,7 @@ st.set_page_config(
 ROOT = Path(__file__).resolve().parent
 DATA_FILE = ROOT / "data" / "tickets.csv"
 
-# Approved palette: warm ivory, blush, burgundy and rose-gold.
+# Approved colour palette
 BG = "#FFF8F5"
 PINK = "#F8E6E5"
 BURGUNDY = "#64243D"
@@ -33,18 +30,23 @@ GOLD = "#D7A66B"
 INK = "#382832"
 MUTED = "#8B737D"
 
-# Apply readable chart text to every Plotly chart.
+# Readable Plotly chart theme
 BUS_TEMPLATE = go.layout.Template(
     layout=go.Layout(
-        font=dict(family="DM Sans, Arial, sans-serif", size=13, color=PLUM),
-        title=dict(font=dict(family="DM Sans, Arial, sans-serif", size=18, color=BURGUNDY)),
+        font=dict(
+            family="DM Sans, Arial, sans-serif",
+            size=13,
+            color=PLUM
+        ),
+        title=dict(
+            font=dict(size=18, color=BURGUNDY)
+        ),
         xaxis=dict(
             tickfont=dict(color=PLUM, size=12),
             title_font=dict(color=BURGUNDY, size=13),
             color=PLUM,
             gridcolor="#EADDE0",
             linecolor="#CDB8BF",
-            zerolinecolor="#D8C5CB",
         ),
         yaxis=dict(
             tickfont=dict(color=PLUM, size=12),
@@ -52,7 +54,6 @@ BUS_TEMPLATE = go.layout.Template(
             color=PLUM,
             gridcolor="#EADDE0",
             linecolor="#CDB8BF",
-            zerolinecolor="#D8C5CB",
         ),
         legend=dict(font=dict(color=PLUM, size=12)),
         hoverlabel=dict(
@@ -64,8 +65,13 @@ BUS_TEMPLATE = go.layout.Template(
         plot_bgcolor="rgba(0,0,0,0)",
     )
 )
+
 pio.templates["bus_analytics"] = BUS_TEMPLATE
 pio.templates.default = "bus_analytics"
+
+# ------------------------------------------------------------
+# DESIGN AND VISIBILITY CSS
+# ------------------------------------------------------------
 
 st.markdown(f"""
 <style>
@@ -89,11 +95,7 @@ html, body, [data-testid="stAppViewContainer"] {{
 }}
 
 [data-testid="stHeader"] {{
-    background:rgba(255,248,245,.92);
-}}
-
-[data-testid="stToolbar"] {{
-    right:1rem;
+    background:rgba(255,248,245,.95);
 }}
 
 .block-container {{
@@ -112,7 +114,7 @@ html, body, [data-testid="stAppViewContainer"] {{
 }}
 
 [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {{
-    color:var(--burgundy);
+    color:var(--burgundy) !important;
 }}
 
 [data-testid="stSidebar"] .stButton button {{
@@ -121,7 +123,7 @@ html, body, [data-testid="stAppViewContainer"] {{
     border:1px solid transparent;
     border-radius:13px;
     background:transparent;
-    color:var(--burgundy);
+    color:var(--burgundy) !important;
     font-weight:600;
     padding:.65rem .8rem;
 }}
@@ -129,15 +131,11 @@ html, body, [data-testid="stAppViewContainer"] {{
 [data-testid="stSidebar"] .stButton button:hover {{
     background:#F4D5D8;
     border-color:#E8BFC7;
-    color:var(--plum);
-}}
-
-[data-testid="stSidebar"] [data-testid="stImage"] img {{
-    border-radius:17px;
+    color:var(--plum) !important;
 }}
 
 [data-testid="stMetric"] {{
-    background:linear-gradient(135deg,#FFF 0%,#FCEDEF 100%);
+    background:linear-gradient(135deg,#FFFFFF 0%,#FCEDEF 100%);
     border:1px solid #EBD8DC;
     border-radius:18px;
     padding:17px 18px;
@@ -145,17 +143,13 @@ html, body, [data-testid="stAppViewContainer"] {{
 }}
 
 [data-testid="stMetricLabel"] p {{
-    color:#806B75 !important;
-    font-weight:600;
+    color:#624D57 !important;
+    font-weight:700 !important;
 }}
 
 [data-testid="stMetricValue"] {{
-    color:var(--plum) !important;
-    font-weight:800;
-}}
-
-[data-testid="stMetricDelta"] {{
-    font-size:.82rem;
+    color:#351324 !important;
+    font-weight:800 !important;
 }}
 
 .card {{
@@ -168,13 +162,13 @@ html, body, [data-testid="stAppViewContainer"] {{
 }}
 
 .card h3 {{
-    color:var(--burgundy);
+    color:#64243D !important;
     margin:0 0 8px 0;
     font-size:1.05rem;
 }}
 
 .card p {{
-    color:#755F69;
+    color:#624D57 !important;
     margin:0;
     line-height:1.55;
 }}
@@ -194,14 +188,14 @@ html, body, [data-testid="stAppViewContainer"] {{
 }}
 
 .hero .eyebrow {{
-    color:#F5D4C9;
+    color:#F5D4C9 !important;
     letter-spacing:2px;
     font-size:.75rem;
     font-weight:700;
 }}
 
 .hero h1 {{
-    color:#FFF4ED;
+    color:#FFF4ED !important;
     font-family:'Playfair Display',serif;
     font-size:clamp(2rem,4vw,3.1rem);
     line-height:1.08;
@@ -209,49 +203,38 @@ html, body, [data-testid="stAppViewContainer"] {{
 }}
 
 .hero p {{
-    color:#F8E7E4;
+    color:#F8E7E4 !important;
     font-size:1rem;
     max-width:650px;
     margin:0;
 }}
 
 .section-title {{
-    color:var(--burgundy);
+    color:#64243D !important;
     font-size:1.25rem;
     font-weight:800;
     margin:1.2rem 0 .7rem 0;
 }}
 
 .small-note {{
-    color:var(--muted);
+    color:#624D57 !important;
     font-size:.84rem;
 }}
 
 .stButton button[kind="primary"] {{
-    background:var(--burgundy);
-    color:white;
+    background:#64243D;
+    color:white !important;
     border:0;
     border-radius:12px;
     font-weight:700;
 }}
 
-.stButton button[kind="primary"]:hover {{
-    background:var(--plum);
-    color:white;
-}}
-
 .stDownloadButton button {{
     background:#F3DDE1;
-    color:var(--burgundy);
+    color:#64243D !important;
     border:1px solid #E6C4CB;
     border-radius:12px;
     font-weight:700;
-}}
-
-[data-testid="stDataFrame"] {{
-    border:1px solid #EAD9DD;
-    border-radius:14px;
-    overflow:hidden;
 }}
 
 hr {{
@@ -262,28 +245,7 @@ footer {{
     visibility:hidden;
 }}
 
-/* High contrast text */
-[data-testid="stAppViewContainer"],
-[data-testid="stAppViewContainer"] p,
-[data-testid="stAppViewContainer"] label,
-[data-testid="stAppViewContainer"] [data-testid="stMarkdownContainer"] {{
-    color:#382832;
-}}
-
-[data-testid="stAppViewContainer"] h1,
-[data-testid="stAppViewContainer"] h2,
-[data-testid="stAppViewContainer"] h3,
-[data-testid="stAppViewContainer"] h4 {{
-    color:#64243D !important;
-}}
-
-[data-testid="stCaptionContainer"],
-[data-testid="stCaptionContainer"] p {{
-    color:#624D57 !important;
-    opacity:1 !important;
-}}
-
-/* Force light mode */
+/* Force a readable light interface */
 :root,
 html,
 body,
@@ -296,15 +258,28 @@ section.main {{
     color:#382832 !important;
 }}
 
-[data-testid="stMain"] > div {{
-    background-color:#FFF8F5 !important;
+[data-testid="stAppViewContainer"] p,
+[data-testid="stAppViewContainer"] label,
+[data-testid="stAppViewContainer"] span {{
+    color:#382832;
 }}
 
-/* Inputs and chat text must remain visible */
+[data-testid="stAppViewContainer"] h1,
+[data-testid="stAppViewContainer"] h2,
+[data-testid="stAppViewContainer"] h3,
+[data-testid="stAppViewContainer"] h4 {{
+    color:#64243D !important;
+}}
+
+[data-testid="stCaptionContainer"] p {{
+    color:#624D57 !important;
+    opacity:1 !important;
+}}
+
+/* Input and chat visibility */
 [data-testid="stTextInput"] input,
 [data-testid="stTextArea"] textarea,
 [data-testid="stChatInput"] textarea,
-[data-testid="stChatInput"] input,
 [data-testid="stSelectbox"] div,
 [data-testid="stDateInput"] input {{
     color:#351324 !important;
@@ -313,37 +288,27 @@ section.main {{
     caret-color:#64243D !important;
 }}
 
-[data-testid="stChatInput"] textarea::placeholder,
-[data-testid="stTextInput"] input::placeholder {{
+[data-testid="stTextInput"] input::placeholder,
+[data-testid="stChatInput"] textarea::placeholder {{
     color:#806B75 !important;
     opacity:1 !important;
 }}
 
-[data-testid="stChatMessage"] p,
-[data-testid="stChatMessage"] div,
-[data-testid="stChatMessage"] span {{
+[data-testid="stChatMessage"] p {{
     color:#351324 !important;
     opacity:1 !important;
 }}
 
+/* Table visibility */
 [data-testid="stDataFrame"] {{
     background:#FFFFFF !important;
+    border:1px solid #EAD9DD;
+    border-radius:14px;
+    color:#351324 !important;
 }}
 
-[data-testid="stDataFrame"] iframe {{
-    color-scheme:light !important;
-}}
-
-[data-testid="stExpander"] summary,
-[data-testid="stExpander"] summary p {{
-    color:#64243D !important;
-    font-weight:700 !important;
-}}
-
-.js-plotly-plot .plotly text,
-.js-plotly-plot .plotly .xtick text,
-.js-plotly-plot .plotly .ytick text,
-.js-plotly-plot .plotly .legend text {{
+/* Chart labels */
+.js-plotly-plot .plotly text {{
     fill:#351324 !important;
 }}
 
@@ -351,24 +316,20 @@ section.main {{
     fill:#64243D !important;
 }}
 
-/* Responsive layout */
+/* Mobile responsive layout */
 @media (max-width:768px) {{
     .block-container {{
-        width:100% !important;
-        max-width:100% !important;
         padding:.65rem .7rem 1.5rem .7rem !important;
     }}
 
     [data-testid="stHorizontalBlock"] {{
         flex-direction:column !important;
-        flex-wrap:nowrap !important;
         gap:.8rem !important;
     }}
 
     [data-testid="stHorizontalBlock"] > [data-testid="column"] {{
         width:100% !important;
         min-width:100% !important;
-        flex:1 1 100% !important;
     }}
 
     .hero {{
@@ -378,115 +339,33 @@ section.main {{
 
     .hero h1 {{
         font-size:1.7rem !important;
-        line-height:1.2 !important;
-    }}
-
-    .hero p {{
-        font-size:.92rem !important;
-        line-height:1.55 !important;
     }}
 
     [data-testid="stMetric"] {{
         padding:12px !important;
-        min-width:0 !important;
-    }}
-
-    [data-testid="stMetricValue"] {{
-        font-size:1.3rem !important;
-        overflow-wrap:anywhere !important;
     }}
 
     .card {{
         padding:16px !important;
-        min-height:unset !important;
     }}
 
     [data-testid="stPlotlyChart"] {{
         width:100% !important;
-        max-width:100% !important;
-        overflow-x:auto !important;
-        padding:2px !important;
-    }}
-
-    [data-testid="stDataFrame"] {{
-        max-width:100% !important;
         overflow-x:auto !important;
     }}
 
     .stButton button,
     .stDownloadButton button {{
         min-height:44px !important;
-        white-space:normal !important;
-    }}
-
-    [data-testid="stSidebar"] {{
-        min-width:min(86vw,310px) !important;
     }}
 }}
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------- Animated welcome splash ----------------------------
 
-if "bus_splash_shown_v2" not in st.session_state:
-    st.session_state.bus_splash_shown_v2 = False
-
-if not st.session_state.bus_splash_shown_v2:
-    splash_placeholder = st.empty()
-    splash_logo_path = ROOT / "logo.png.jpeg"
-
-    if not splash_logo_path.exists():
-        splash_logo_path = ROOT / "brand_panel.png.jpeg"
-
-    logo_html = ""
-
-    if splash_logo_path.exists():
-        try:
-            encoded_logo = base64.b64encode(
-                splash_logo_path.read_bytes()
-            ).decode("utf-8")
-
-            suffix = splash_logo_path.suffix.lower()
-            mime = (
-                "image/jpeg"
-                if suffix in [".jpg", ".jpeg"]
-                else "image/png"
-            )
-
-            logo_html = (
-                f'<img class="bus-splash-logo" '
-                f'src="data:{mime};base64,{encoded_logo}" '
-                f'alt="Bus Analytics logo">'
-            )
-
-        except Exception:
-            logo_html = '<div style="font-size:76px">🚌</div>'
-    else:
-        logo_html = '<div style="font-size:76px">🚌</div>'
-
-    splash_placeholder.markdown(
-        f"""
-        <div class="bus-splash">
-            {logo_html}
-            <div class="bus-splash-title">BUS ANALYTICS</div>
-            <div class="bus-splash-subtitle">
-                INTELLIGENT BUS TICKET DATA PLATFORM
-            </div>
-            <div class="bus-splash-line"></div>
-            <div style="margin-top:22px;color:#8B737D;
-                        font-size:12px;letter-spacing:2px">
-                CREATED BY CRACKER HEADS
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    time.sleep(2.2)
-    splash_placeholder.empty()
-    st.session_state.bus_splash_shown_v2 = True
-
-# ---------------------------- Data helpers ----------------------------
+# ------------------------------------------------------------
+# DATA PREPARATION FUNCTIONS
+# ------------------------------------------------------------
 
 def find_col(frame, candidates):
     lookup = {
@@ -505,31 +384,39 @@ def find_col(frame, candidates):
 
     return None
 
+
 def prepare_data(raw):
     df = raw.copy()
 
     mapping = {
-        "waybill": ["Waybill Number", "Waybill", "waybill_number"],
-        "ticket": ["Ticket Number", "Ticket No", "ticket_number"],
-        "from": ["From Stop", "From", "Origin"],
-        "to": ["To Stop", "To", "Destination"],
-        "date": ["Date", "Journey Date", "Travel Date"],
-        "time": ["Time", "Journey Time"],
+        "waybill": [
+            "Waybill Number", "Waybill", "waybill_number"
+        ],
+        "ticket": [
+            "Ticket Number", "Ticket No", "ticket_number"
+        ],
+        "from": [
+            "From Stop", "From", "Origin"
+        ],
+        "to": [
+            "To Stop", "To", "Destination"
+        ],
+        "date": [
+            "Date", "Journey Date", "Travel Date"
+        ],
+        "time": [
+            "Time", "Journey Time"
+        ],
         "passengers": [
-            "Total Psgr",
-            "Total Passenger",
-            "Passengers",
-            "Passenger Count"
+            "Total Psgr", "Total Passenger",
+            "Passengers", "Passenger Count"
         ],
         "collected": [
-            "Coll Amt",
-            "Collected Amount",
-            "Fare",
-            "Amount Collected"
+            "Coll Amt", "Collected Amount",
+            "Fare", "Amount Collected"
         ],
         "uncollected": [
-            "Uncoll Amt",
-            "Uncollected Amount",
+            "Uncoll Amt", "Uncollected Amount",
             "Pending Amount"
         ],
     }
@@ -544,8 +431,7 @@ def prepare_data(raw):
     ]
 
     missing = [
-        column
-        for column in required
+        column for column in required
         if selected[column] is None
     ]
 
@@ -593,9 +479,7 @@ def prepare_data(raw):
         )
 
     for column in [
-        "passengers",
-        "collected",
-        "uncollected"
+        "passengers", "collected", "uncollected"
     ]:
         out[column] = pd.to_numeric(
             out[column],
@@ -611,18 +495,18 @@ def prepare_data(raw):
 
     return out
 
+
 def load_default_data():
     if not DATA_FILE.exists():
         return None
-
     return pd.read_csv(DATA_FILE)
+
 
 def money(value):
     return f"₹{value:,.0f}"
 
-def style_chart(fig, height=360):
-    """Apply consistent readable chart text and responsive sizing."""
 
+def style_chart(fig, height=360):
     fig.update_layout(
         template="bus_analytics",
         height=height,
@@ -652,15 +536,14 @@ def style_chart(fig, height=360):
 
     return fig
 
-def show_table(*args, **kwargs):
-    """Render every dataframe with Streamlit's light table theme."""
-    kwargs.setdefault("theme", "light")
-    return st.dataframe(*args, **kwargs)
 
 def go_to(page):
     st.session_state.current_page = page
 
-# ---------------------------- Session state ----------------------------
+
+# ------------------------------------------------------------
+# SESSION STATE AND DATA LOADING
+# ------------------------------------------------------------
 
 if "current_page" not in st.session_state:
     st.session_state.current_page = "Home"
@@ -691,9 +574,13 @@ else:
         "or upload a CSV from Upload Dataset."
     )
 
-# ---------------------------- Sidebar ----------------------------
+
+# ------------------------------------------------------------
+# SIDEBAR NAVIGATION
+# ------------------------------------------------------------
 
 with st.sidebar:
+
     brand_image = ROOT / "brand_panel.png.jpeg"
     logo_image = ROOT / "logo.png.jpeg"
 
@@ -706,14 +593,10 @@ with st.sidebar:
             "<div style='text-align:center;padding:20px 8px;color:#64243D'>"
             "<div style='font-size:3rem'>🚌</div>"
             "<h2>BUS ANALYTICS</h2>"
-            "<small>Intelligent Bus Ticket Data Platform</small></div>",
+            "<small>Intelligent Bus Ticket Data Platform</small>"
+            "</div>",
             unsafe_allow_html=True
         )
-
-    st.markdown(
-        "<div style='height:1px;background:#E5C8CF;margin:12px 0 14px'></div>",
-        unsafe_allow_html=True
-    )
 
     st.markdown(
         "<div style='height:1px;background:#E5C8CF;margin:12px 0 18px'></div>"
@@ -731,7 +614,6 @@ with st.sidebar:
         ("Passenger Insights", "♙"),
         ("Demand Prediction", "↗"),
         ("Smart Insights", "✧"),
-        ("AI Website Assistant", "✦"),
         ("Reports", "▧"),
         ("Upload Dataset", "⇧")
     ]
@@ -762,53 +644,9 @@ with st.sidebar:
 
 page = st.session_state.current_page
 
-# ---------------------------- Always-accessible mobile navigation ----------------------------
-
-mobile_nav_items = [
-    ("Home", "Home"),
-    ("Records", "Ticket Records"),
-    ("Dashboard", "Dashboard"),
-    ("Routes", "Route Analysis"),
-    ("Revenue", "Revenue Analysis"),
-    ("Passengers", "Passenger Insights"),
-    ("Demand", "Demand Prediction"),
-    ("Insights", "Smart Insights"),
-    ("Reports", "Reports"),
-    ("Upload", "Upload Dataset"),
-]
-
-with st.container(key="mobile_bottom_nav"):
-    first_row = st.columns(5)
-
-    for col, (label, destination) in zip(
-        first_row, mobile_nav_items[:5]
-    ):
-        with col:
-            if st.button(
-                label,
-                key=f"mobile_nav_{destination}",
-                type="primary" if page == destination else "secondary",
-                use_container_width=True,
-            ):
-                go_to(destination)
-                st.rerun()
-
-    second_row = st.columns(5)
-
-    for col, (label, destination) in zip(
-        second_row, mobile_nav_items[5:]
-    ):
-        with col:
-            if st.button(
-                label,
-                key=f"mobile_nav_{destination}",
-                type="primary" if page == destination else "secondary",
-                use_container_width=True,
-            ):
-                go_to(destination)
-                st.rerun()
-
-# ---------------------------- Header ----------------------------
+# ------------------------------------------------------------
+# HEADER
+# ------------------------------------------------------------
 
 header_left, header_right = st.columns([5, 1])
 
@@ -825,238 +663,51 @@ with header_right:
         "font-weight:700;padding-top:3px'>🚌 BUS ANALYTICS</div>",
         unsafe_allow_html=True
     )
-    # ---------------------------- Shared validation ----------------------------
 
-if data_error:
+# ------------------------------------------------------------
+# SHARED VALIDATION
+# ------------------------------------------------------------
+
+if data_error and page != "Upload Dataset":
     st.warning(data_error)
 
-# ============================================================
+# ------------------------------------------------------------
 # HOME PAGE
-# ============================================================
+# ------------------------------------------------------------
 
 if page == "Home":
 
-    st.markdown(
-        """
-        <div class="hero">
-            <div class="eyebrow">BOOK • ANALYZE • PREDICT</div>
-            <h1>Welcome to BUS ANALYTICS</h1>
-            <p>Intelligent Bus Ticket Data Platform</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    banner = ROOT / "bus_banner.png.jpeg"
-
-    if banner.exists():
-        st.image(str(banner), use_container_width=True)
-
-    st.markdown(
-        "<div class='section-title'>Your Bus Data, Made Meaningful</div>",
-        unsafe_allow_html=True
-    )
-
-    st.write(
-        "Explore ticket records, understand passenger activity, "
-        "compare routes and review revenue through one simple platform."
-    )
+    st.markdown("""
+    <div class="hero">
+      <div class="eyebrow">INTELLIGENT TRANSPORTATION ANALYTICS</div>
+      <h1>Welcome to Bus Analytics</h1>
+      <p>Monitor ticket activity, understand passenger movement and
+      explore route performance with your bus ticket records.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     if not data.empty:
 
-        c1, c2, c3, c4 = st.columns(4)
+        total_tickets = len(data)
+        total_passengers = int(data["passengers"].sum())
+        total_revenue = float(data["collected"].sum())
+        total_routes = int(data["route"].nunique())
 
-        c1.metric("Total Tickets", f"{len(data):,}")
-        c2.metric(
-            "Total Passengers",
-            f"{int(data['passengers'].sum()):,}"
-        )
-        c3.metric(
-            "Collected Revenue",
-            money(data["collected"].sum())
-        )
-        c4.metric(
-            "Uncollected Amount",
-            money(data["uncollected"].sum())
-        )
+        m1, m2, m3, m4 = st.columns(4)
 
-    else:
-        st.info("Upload your ticket dataset to see the statistics.")
-
-    st.markdown(
-        "<div class='section-title'>Explore Platform Features</div>",
-        unsafe_allow_html=True
-    )
-
-    features = [
-        ("🎫 Ticket Records", "Search and review ticket information."),
-        ("📊 Dashboard", "View ticket, passenger and revenue statistics."),
-        ("🛣️ Route Analysis", "Compare route performance."),
-        ("💰 Revenue Analysis", "Understand collected and uncollected amounts."),
-        ("👥 Passenger Insights", "Explore passenger activity and boarding points."),
-        ("🔮 Demand Prediction", "Review observed demand patterns."),
-    ]
-
-    cols = st.columns(3)
-
-    for index, (title, description) in enumerate(features):
-        with cols[index % 3]:
-            st.markdown(
-                f"""
-                <div class="card">
-                    <h3>{title}</h3>
-                    <p>{description}</p>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-            if index % 3 == 2:
-                st.write("")
-
-
-# ============================================================
-# TICKET RECORDS
-# ============================================================
-
-elif page == "Ticket Records":
-
-    st.title("🎫 Ticket Records")
-    st.caption("Search, filter and explore bus ticket records.")
-
-    if not data.empty:
-
-        filtered = data.copy()
-
-        c1, c2, c3 = st.columns(3)
-
-        with c1:
-            search_text = st.text_input(
-                "Search ticket, waybill or stop",
-                key="ticket_search"
-            )
-
-        with c2:
-            route_options = [
-                "All Routes"
-            ] + sorted(data["route"].dropna().unique().tolist())
-
-            selected_route = st.selectbox(
-                "Select Route",
-                route_options
-            )
-
-        with c3:
-            available_dates = data["date"].dropna()
-
-            if not available_dates.empty:
-
-                min_date = available_dates.min().date()
-                max_date = available_dates.max().date()
-
-                selected_dates = st.date_input(
-                    "Select Date Range",
-                    value=(min_date, max_date),
-                    min_value=min_date,
-                    max_value=max_date,
-                    key="ticket_date_filter"
-                )
-            else:
-                selected_dates = None
-
-        if selected_route != "All Routes":
-            filtered = filtered[
-                filtered["route"] == selected_route
-            ]
-
-        if search_text:
-            search_mask = filtered.astype(str).apply(
-                lambda column: column.str.contains(
-                    search_text,
-                    case=False,
-                    na=False
-                )
-            ).any(axis=1)
-
-            filtered = filtered[search_mask]
-
-        if selected_dates and len(selected_dates) == 2:
-
-            start_date, end_date = selected_dates
-
-            filtered = filtered[
-                filtered["date"].dt.date.between(
-                    start_date,
-                    end_date
-                )
-            ]
-
-        display = filtered.rename(
-            columns={
-                "waybill": "Waybill Number",
-                "ticket": "Ticket Number",
-                "from": "From Stop",
-                "to": "To Stop",
-                "date": "Date",
-                "time": "Time",
-                "passengers": "Passengers",
-                "collected": "Collected Amount",
-                "uncollected": "Uncollected Amount",
-                "route": "Route"
-            }
-        )
+        m1.metric("Total Tickets", f"{total_tickets:,}")
+        m2.metric("Total Revenue", money(total_revenue))
+        m3.metric("Total Passengers", f"{total_passengers:,}")
+        m4.metric("Total Routes", f"{total_routes:,}")
 
         st.markdown(
-            f"### {len(filtered):,} Records Found"
+            "<div class='section-title'>Ticket activity overview</div>",
+            unsafe_allow_html=True
         )
 
-        show_table(
-            display,
-            use_container_width=True,
-            hide_index=True
-        )
+        chart_left, chart_right = st.columns(2)
 
-        st.download_button(
-            "⬇️ Download Filtered Records",
-            filtered.to_csv(index=False).encode("utf-8"),
-            "ticket_records.csv",
-            "text/csv"
-        )
-
-    else:
-        st.info("Upload a CSV dataset to view ticket records.")
-
-
-# ============================================================
-# DASHBOARD
-# ============================================================
-
-elif page == "Dashboard":
-
-    st.title("📊 Operations Dashboard")
-    st.caption("A consolidated view of bus ticket activity.")
-
-    if not data.empty:
-
-        c1, c2, c3, c4 = st.columns(4)
-
-        c1.metric("Total Tickets", f"{len(data):,}")
-        c2.metric(
-            "Passengers",
-            f"{int(data['passengers'].sum()):,}"
-        )
-        c3.metric(
-            "Collected Revenue",
-            money(data["collected"].sum())
-        )
-        c4.metric(
-            "Uncollected",
-            money(data["uncollected"].sum())
-        )
-
-        left, right = st.columns(2)
-
-        with left:
+        with chart_left:
 
             date_summary = (
                 data.dropna(subset=["date"])
@@ -1067,36 +718,258 @@ elif page == "Dashboard":
 
             date_summary.columns = ["Date", "Tickets"]
 
-            fig = px.line(
-                date_summary,
-                x="Date",
-                y="Tickets",
-                markers=True,
-                title="Ticket Bookings Trend",
-                color_discrete_sequence=[BURGUNDY]
-            )
+            if not date_summary.empty:
 
-            st.plotly_chart(
-                style_chart(fig, 380),
-                use_container_width=True
-            )
+                fig = px.area(
+                    date_summary,
+                    x="Date",
+                    y="Tickets",
+                    title="Ticket Bookings Trend"
+                )
 
-        with right:
+                fig.update_traces(
+                    line_color=BURGUNDY,
+                    fillcolor="rgba(199,123,140,.25)"
+                )
+
+                fig.update_layout(
+                    height=330,
+                    margin=dict(l=10, r=10, t=55, b=10),
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    font=dict(color=INK),
+                    title_font=dict(color=BURGUNDY, size=17)
+                )
+
+                st.plotly_chart(
+                    fig,
+                    use_container_width=True
+                )
+
+            else:
+                st.info(
+                    "No usable date values were found for the trend chart."
+                )
+
+        with chart_right:
 
             top_routes = (
                 data.groupby("route")
-                .size()
-                .sort_values(ascending=False)
-                .head(10)
-                .reset_index(name="Tickets")
+                .agg(
+                    Tickets=("route", "size"),
+                    Passengers=("passengers", "sum")
+                )
+                .reset_index()
+                .nlargest(7, "Tickets")
+                .sort_values("Tickets")
             )
 
+            if not top_routes.empty:
+
+                fig = px.bar(
+                    top_routes,
+                    x="Tickets",
+                    y="route",
+                    orientation="h",
+                    title="Top Routes by Tickets",
+                    text="Tickets"
+                )
+
+                fig.update_traces(
+                    marker_color=ROSE,
+                    textposition="outside",
+                    cliponaxis=False
+                )
+
+                fig.update_layout(
+                    height=330,
+                    margin=dict(l=10, r=25, t=55, b=10),
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    font=dict(color=INK),
+                    title_font=dict(color=BURGUNDY, size=17),
+                    yaxis_title="",
+                    xaxis_title="Tickets"
+                )
+
+                st.plotly_chart(
+                    fig,
+                    use_container_width=True
+                )
+
+        st.markdown(
+            "<div class='section-title'>Explore your analytics</div>",
+            unsafe_allow_html=True
+        )
+
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+            st.markdown(
+                "<div class='card'><h3>↗ Demand Prediction</h3>"
+                "<p>Explore historical ticket demand and simple upcoming "
+                "demand estimates.</p></div>",
+                unsafe_allow_html=True
+            )
+
+            if st.button(
+                "Explore demand",
+                key="home_demand",
+                use_container_width=True
+            ):
+                go_to("Demand Prediction")
+                st.rerun()
+
+        with c2:
+            st.markdown(
+                "<div class='card'><h3>✧ Smart Insights</h3>"
+                "<p>Find useful observations from routes, passengers and "
+                "collections.</p></div>",
+                unsafe_allow_html=True
+            )
+
+            if st.button(
+                "Explore insights",
+                key="home_insights",
+                use_container_width=True
+            ):
+                go_to("Smart Insights")
+                st.rerun()
+
+        with c3:
+            st.markdown(
+                "<div class='card'><h3>▧ Generate Reports</h3>"
+                "<p>Export ticket records and summary data for further review.</p>"
+                "</div>",
+                unsafe_allow_html=True
+            )
+
+            if st.button(
+                "Explore reports",
+                key="home_reports",
+                use_container_width=True
+            ):
+                go_to("Reports")
+                st.rerun()
+
+    else:
+
+        st.markdown(
+            "<div class='card'><h3>Your analytics workspace is ready</h3>"
+            "<p>Upload the ticket dataset to populate ticket totals, revenue, "
+            "passenger insights, route charts and reports.</p></div>",
+            unsafe_allow_html=True
+        )
+
+        if st.button("Upload ticket dataset", type="primary"):
+            go_to("Upload Dataset")
+            st.rerun()
+
+
+# ---------------------------- Ticket Records ----------------------------
+
+elif page == "Ticket Records":
+
+    st.title("Ticket Records")
+    st.caption(
+        "Search, review and export the ticket records in your dataset."
+    )
+
+    if not data.empty:
+
+        search = st.text_input(
+            "Search by ticket, waybill, route or stop",
+            placeholder="Type a ticket number, route or stop..."
+        )
+
+        view = data.copy()
+
+        if search.strip():
+
+            mask = view.astype(str).apply(
+                lambda col: col.str.contains(
+                    search,
+                    case=False,
+                    na=False
+                )
+            ).any(axis=1)
+
+            view = view[mask]
+
+        display = view.rename(
+            columns={
+                "waybill": "Waybill Number",
+                "ticket": "Ticket Number",
+                "from": "From Stop",
+                "to": "To Stop",
+                "date": "Date",
+                "time": "Time",
+                "passengers": "Passengers",
+                "collected": "Collected Amount (₹)",
+                "uncollected": "Uncollected Amount (₹)"
+            }
+        )
+
+        st.write(f"**{len(view):,}** records found")
+
+        st.dataframe(
+            display,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        st.download_button(
+            "Download filtered records (CSV)",
+            view.to_csv(index=False).encode("utf-8"),
+            "ticket_records.csv",
+            "text/csv"
+        )
+
+    else:
+        st.info("Upload a CSV dataset to view ticket records.")
+
+
+# ---------------------------- Dashboard ----------------------------
+
+elif page == "Dashboard":
+
+    st.title("Operations Dashboard")
+    st.caption(
+        "A consolidated view of ticketing and bus operation activity."
+    )
+
+    if not data.empty:
+
+        a, b, c, d = st.columns(4)
+
+        a.metric("Tickets", f"{len(data):,}")
+        b.metric("Passengers", f"{int(data.passengers.sum()):,}")
+        c.metric("Collected", money(data.collected.sum()))
+        d.metric("Uncollected", money(data.uncollected.sum()))
+
+        x, y = st.columns(2)
+
+        with x:
+
+            by_day = (
+                data.dropna(subset=["date"])
+                .groupby(data.date.dt.day_name())
+                .size()
+                .reindex([
+                    "Monday", "Tuesday", "Wednesday",
+                    "Thursday", "Friday", "Saturday", "Sunday"
+                ])
+                .dropna()
+                .reset_index()
+            )
+
+            by_day.columns = ["Day", "Tickets"]
+
             fig = px.bar(
-                top_routes.sort_values("Tickets"),
-                x="Tickets",
-                y="route",
-                orientation="h",
-                title="Top 10 Routes by Ticket Count",
+                by_day,
+                x="Day",
+                y="Tickets",
+                title="Tickets by Day of Week",
                 color_discrete_sequence=[ROSE],
                 text="Tickets"
             )
@@ -1107,9 +980,65 @@ elif page == "Dashboard":
             )
 
             fig.update_layout(
+                height=350,
+                margin=dict(t=55, l=10, r=10, b=10)
+            )
+
+            st.plotly_chart(
+                style_chart(fig, 350),
+                use_container_width=True
+            )
+
+        with y:
+
+            origin_counts = (
+                data.groupby("from")
+                .size()
+                .sort_values(ascending=False)
+            )
+
+            top_origins = origin_counts.head(10)
+            other_count = int(origin_counts.iloc[10:].sum())
+
+            origin_plot = top_origins.reset_index()
+            origin_plot.columns = ["Origin", "Tickets"]
+
+            if other_count > 0:
+
+                origin_plot = pd.concat(
+                    [
+                        origin_plot,
+                        pd.DataFrame([
+                            {
+                                "Origin": "Other stops",
+                                "Tickets": other_count
+                            }
+                        ])
+                    ],
+                    ignore_index=True
+                )
+
+            fig = px.bar(
+                origin_plot.sort_values("Tickets"),
+                x="Tickets",
+                y="Origin",
+                orientation="h",
+                title="Top Ticket Origins",
+                text="Tickets",
+                color_discrete_sequence=[ROSE]
+            )
+
+            fig.update_traces(
+                textposition="outside",
+                cliponaxis=False
+            )
+
+            fig.update_layout(
+                height=420,
+                margin=dict(t=55, l=10, r=35, b=10),
                 yaxis_title="",
                 xaxis_title="Number of Tickets",
-                margin=dict(l=15, r=35, t=55, b=20)
+                showlegend=False
             )
 
             st.plotly_chart(
@@ -1118,20 +1047,19 @@ elif page == "Dashboard":
             )
 
     else:
-        st.info("Upload your ticket dataset to view the dashboard.")
-
-
-# ============================================================
+        st.info("Upload your ticket CSV to see the dashboard.")
+        # ============================================================
 # ROUTE ANALYSIS
 # ============================================================
 
 elif page == "Route Analysis":
 
-    st.title("🛣️ Route Analysis")
+    st.title("Route Analysis")
+    st.caption("Compare routes, passenger activity and revenue.")
 
     if not data.empty:
 
-        route_summary = (
+        routes = (
             data.groupby("route")
             .agg(
                 Tickets=("ticket", "count"),
@@ -1143,22 +1071,22 @@ elif page == "Route Analysis":
             .sort_values("Tickets", ascending=False)
         )
 
-        st.markdown("### Route Performance Table")
+        st.markdown("### Route Performance")
 
-        show_table(
-            route_summary,
+        st.dataframe(
+            routes,
             use_container_width=True,
             hide_index=True
         )
 
         fig = px.bar(
-            route_summary.head(15).sort_values("Passengers"),
+            routes.head(15).sort_values("Passengers"),
             x="Passengers",
             y="route",
             orientation="h",
-            title="Top Routes by Passenger Count",
-            color_discrete_sequence=[BURGUNDY],
-            text="Passengers"
+            title="Top 15 Routes by Passenger Count",
+            text="Passengers",
+            color_discrete_sequence=[BURGUNDY]
         )
 
         fig.update_traces(
@@ -1171,7 +1099,7 @@ elif page == "Route Analysis":
             use_container_width=True
         )
 
-        # Route Performance Score
+        # Route performance score
         st.markdown("### Route Performance Score")
 
         def normalise(series):
@@ -1191,47 +1119,38 @@ elif page == "Route Analysis":
                 * 100
             )
 
-        score_data = route_summary.copy()
+        score = routes.copy()
 
-        score_data["Ticket Score"] = normalise(
-            score_data["Tickets"]
-        )
+        score["Ticket Score"] = normalise(score["Tickets"])
+        score["Passenger Score"] = normalise(score["Passengers"])
+        score["Revenue Score"] = normalise(score["Revenue"])
 
-        score_data["Passenger Score"] = normalise(
-            score_data["Passengers"]
-        )
-
-        score_data["Revenue Score"] = normalise(
-            score_data["Revenue"]
-        )
-
-        score_data["Performance Score"] = (
-            score_data["Ticket Score"] * 0.35
-            + score_data["Passenger Score"] * 0.35
-            + score_data["Revenue Score"] * 0.30
+        score["Performance Score"] = (
+            score["Ticket Score"] * 0.35
+            + score["Passenger Score"] * 0.35
+            + score["Revenue Score"] * 0.30
         ).round(1)
 
-        score_data = score_data.sort_values(
+        score = score.sort_values(
             "Performance Score",
             ascending=False
         )
 
-        best_route = score_data.iloc[0]
+        best = score.iloc[0]
 
         st.success(
-            f"Top-performing route in this dataset: "
-            f"{best_route['route']} — "
-            f"{best_route['Performance Score']:.1f}/100"
+            f"Top-performing route: {best['route']} "
+            f"with a score of {best['Performance Score']}/100."
         )
 
         st.caption(
-            "Score calculation: 35% tickets, 35% passengers "
-            "and 30% collected revenue. This is a relative "
-            "dataset score, not an official service-quality rating."
+            "Score calculation: 35% ticket count, "
+            "35% passenger count and 30% collected revenue. "
+            "This is a relative dataset score."
         )
 
         fig = px.bar(
-            score_data.head(10).sort_values("Performance Score"),
+            score.head(10).sort_values("Performance Score"),
             x="Performance Score",
             y="route",
             orientation="h",
@@ -1247,9 +1166,8 @@ elif page == "Route Analysis":
 
         fig.update_layout(
             xaxis_range=[0, 115],
-            xaxis_title="Relative score out of 100",
-            yaxis_title="",
-            margin=dict(l=15, r=40, t=55, b=20)
+            xaxis_title="Performance Score",
+            yaxis_title=""
         )
 
         st.plotly_chart(
@@ -1267,7 +1185,8 @@ elif page == "Route Analysis":
 
 elif page == "Revenue Analysis":
 
-    st.title("💰 Revenue Analysis")
+    st.title("Revenue Analysis")
+    st.caption("Understand revenue collection and pending amounts.")
 
     if not data.empty:
 
@@ -1275,26 +1194,25 @@ elif page == "Revenue Analysis":
         uncollected = data["uncollected"].sum()
         total = collected + uncollected
 
-        c1, c2, c3 = st.columns(3)
+        a, b, c = st.columns(3)
 
-        c1.metric("Collected Revenue", money(collected))
-        c2.metric("Uncollected Amount", money(uncollected))
-        c3.metric("Total Recorded Amount", money(total))
+        a.metric("Collected Revenue", money(collected))
+        b.metric("Uncollected Amount", money(uncollected))
+        c.metric("Total Recorded Amount", money(total))
 
-        if total > 0:
-            collection_rate = collected / total * 100
-        else:
-            collection_rate = 0
+        collection_rate = (
+            collected / total * 100 if total > 0 else 0
+        )
+
+        st.markdown("### Collection Rate")
 
         st.progress(
             min(max(collection_rate / 100, 0), 1)
         )
 
-        st.write(
-            f"**Collection Rate: {collection_rate:.1f}%**"
-        )
+        st.write(f"**{collection_rate:.1f}% collected**")
 
-        revenue_by_route = (
+        revenue_routes = (
             data.groupby("route")
             .agg(
                 Collected=("collected", "sum"),
@@ -1306,11 +1224,11 @@ elif page == "Revenue Analysis":
         )
 
         fig = px.bar(
-            revenue_by_route,
+            revenue_routes,
             x="route",
             y=["Collected", "Uncollected"],
             barmode="group",
-            title="Collected and Uncollected Revenue by Route",
+            title="Revenue by Route",
             color_discrete_sequence=[BURGUNDY, GOLD]
         )
 
@@ -1325,8 +1243,10 @@ elif page == "Revenue Analysis":
             use_container_width=True
         )
 
-        show_table(
-            revenue_by_route,
+        st.markdown("### Route-wise Revenue Details")
+
+        st.dataframe(
+            revenue_routes,
             use_container_width=True,
             hide_index=True
         )
@@ -1341,23 +1261,24 @@ elif page == "Revenue Analysis":
 
 elif page == "Passenger Insights":
 
-    st.title("👥 Passenger Insights")
+    st.title("Passenger Insights")
+    st.caption("Understand passenger movement and popular stops.")
 
     if not data.empty:
 
-        c1, c2, c3 = st.columns(3)
+        a, b, c = st.columns(3)
 
-        c1.metric(
+        a.metric(
             "Total Passengers",
             f"{int(data['passengers'].sum()):,}"
         )
 
-        c2.metric(
+        b.metric(
             "Average Passengers per Ticket",
             f"{data['passengers'].mean():.2f}"
         )
 
-        c3.metric(
+        c.metric(
             "Boarding Stops",
             f"{data['from'].nunique():,}"
         )
@@ -1376,8 +1297,8 @@ elif page == "Passenger Insights":
             y="route",
             orientation="h",
             title="Top Routes by Passenger Count",
-            color_discrete_sequence=[ROSE],
-            text="passengers"
+            text="passengers",
+            color_discrete_sequence=[ROSE]
         )
 
         fig.update_traces(
@@ -1403,9 +1324,9 @@ elif page == "Passenger Insights":
             "Passengers"
         ]
 
-        st.markdown("### Top Boarding Stops")
+        st.markdown("### Popular Boarding Stops")
 
-        show_table(
+        st.dataframe(
             boarding,
             use_container_width=True,
             hide_index=True
@@ -1426,7 +1347,7 @@ elif page == "Passenger Insights":
 
         st.markdown("### Popular Destination Stops")
 
-        show_table(
+        st.dataframe(
             destination,
             use_container_width=True,
             hide_index=True
@@ -1442,42 +1363,37 @@ elif page == "Passenger Insights":
 
 elif page == "Demand Prediction":
 
-    st.title("🔮 Demand Prediction")
-
+    st.title("Demand Prediction")
     st.caption(
-        "Explore observed hourly ticket activity and demand patterns."
+        "Explore observed hourly ticket demand and activity patterns."
     )
 
     if not data.empty:
 
-        demand_data = data.copy()
+        demand = data.copy()
 
-        demand_data["hour"] = pd.to_datetime(
-            demand_data["time"].astype(str),
+        demand["hour"] = pd.to_datetime(
+            demand["time"].astype(str),
             format="%H:%M:%S",
             errors="coerce"
         ).dt.hour
 
-        missing_hours = demand_data["hour"].isna()
+        missing_hours = demand["hour"].isna()
 
-        demand_data.loc[missing_hours, "hour"] = pd.to_datetime(
-            demand_data.loc[missing_hours, "time"].astype(str),
+        demand.loc[missing_hours, "hour"] = pd.to_datetime(
+            demand.loc[missing_hours, "time"].astype(str),
             format="%H:%M",
             errors="coerce"
         ).dt.hour
 
-        demand_data = demand_data.dropna(
-            subset=["hour"]
-        )
+        demand = demand.dropna(subset=["hour"])
 
-        if not demand_data.empty:
+        if not demand.empty:
 
-            demand_data["hour"] = (
-                demand_data["hour"].astype(int)
-            )
+            demand["hour"] = demand["hour"].astype(int)
 
             hourly = (
-                demand_data.groupby("hour")
+                demand.groupby("hour")
                 .agg(
                     Tickets=("ticket", "count"),
                     Passengers=("passengers", "sum")
@@ -1519,23 +1435,23 @@ elif page == "Demand Prediction":
                 f"with {int(peak['Tickets'])} tickets."
             )
 
-            st.markdown("### Hourly Demand Data")
+            st.markdown("### Hourly Demand Details")
 
-            show_table(
+            st.dataframe(
                 hourly,
                 use_container_width=True,
                 hide_index=True
             )
 
             st.info(
-                "The current dataset contains limited historical dates. "
-                "This page shows observed demand patterns, not a "
-                "machine-learning forecast of future demand."
+                "This analysis identifies observed demand patterns. "
+                "Reliable future forecasting requires historical "
+                "records across multiple dates."
             )
 
         else:
             st.warning(
-                "Time values could not be interpreted for hourly analysis."
+                "Time values could not be interpreted."
             )
 
     else:
@@ -1548,10 +1464,10 @@ elif page == "Demand Prediction":
 
 elif page == "Smart Insights":
 
-    st.title("✨ Smart Insights")
+    st.title("Smart Insights")
 
     st.caption(
-        "Six intelligent analysis sections that convert ticket "
+        "Six intelligent analysis sections that turn ticket "
         "records into useful operational observations."
     )
 
@@ -1562,7 +1478,7 @@ elif page == "Smart Insights":
         total_revenue = data["collected"].sum()
         total_uncollected = data["uncollected"].sum()
 
-        route_summary = (
+        routes = (
             data.groupby("route")
             .agg(
                 Tickets=("ticket", "count"),
@@ -1582,40 +1498,37 @@ elif page == "Smart Insights":
             unsafe_allow_html=True
         )
 
-        if not route_summary.empty:
+        busiest = routes.iloc[0]
 
-            busiest = route_summary.iloc[0]
+        st.success(
+            f"Highest ticket activity: {busiest['route']} "
+            f"with {int(busiest['Tickets'])} tickets."
+        )
 
-            st.success(
-                f"Highest ticket activity is recorded on "
-                f"{busiest['route']} with "
-                f"{int(busiest['Tickets'])} tickets."
-            )
+        st.write(
+            "Recommendation: Review passenger demand on high-activity "
+            "routes when planning bus frequency and schedules."
+        )
 
-            st.write(
-                "Recommendation: Review passenger demand on this "
-                "route when planning bus frequency and scheduling."
-            )
+        fig = px.bar(
+            routes.head(10).sort_values("Tickets"),
+            x="Tickets",
+            y="route",
+            orientation="h",
+            title="High-Demand Routes",
+            text="Tickets",
+            color_discrete_sequence=[BURGUNDY]
+        )
 
-            fig = px.bar(
-                route_summary.head(10).sort_values("Tickets"),
-                x="Tickets",
-                y="route",
-                orientation="h",
-                title="High-Demand Routes",
-                color_discrete_sequence=[BURGUNDY],
-                text="Tickets"
-            )
+        fig.update_traces(
+            textposition="outside",
+            cliponaxis=False
+        )
 
-            fig.update_traces(
-                textposition="outside",
-                cliponaxis=False
-            )
-
-            st.plotly_chart(
-                style_chart(fig, 400),
-                use_container_width=True
-            )
+        st.plotly_chart(
+            style_chart(fig, 400),
+            use_container_width=True
+        )
 
         # 2. ROUTE INTELLIGENCE
 
@@ -1625,28 +1538,23 @@ elif page == "Smart Insights":
             unsafe_allow_html=True
         )
 
-        if not route_summary.empty:
+        lowest = routes.sort_values("Tickets").iloc[0]
 
-            lowest = route_summary.sort_values(
-                "Tickets"
-            ).iloc[0]
+        st.info(
+            f"Lowest recorded ticket activity: {lowest['route']} "
+            f"with {int(lowest['Tickets'])} tickets."
+        )
 
-            st.info(
-                f"Lowest recorded ticket activity: "
-                f"{lowest['route']} with "
-                f"{int(lowest['Tickets'])} tickets."
-            )
+        st.write(
+            "Recommendation: Review route usage and passenger "
+            "requirements before making operational changes."
+        )
 
-            st.write(
-                "Recommendation: Review route usage and passenger "
-                "requirements before making operational changes."
-            )
-
-            show_table(
-                route_summary,
-                use_container_width=True,
-                hide_index=True
-            )
+        st.dataframe(
+            routes,
+            use_container_width=True,
+            hide_index=True
+        )
 
         # 3. REVENUE INTELLIGENCE
 
@@ -1656,32 +1564,18 @@ elif page == "Smart Insights":
             unsafe_allow_html=True
         )
 
-        total_recorded = (
-            total_revenue + total_uncollected
-        )
+        total_recorded = total_revenue + total_uncollected
 
         collection_rate = (
             total_revenue / total_recorded * 100
-            if total_recorded > 0
-            else 0
+            if total_recorded > 0 else 0
         )
 
         a, b, c = st.columns(3)
 
-        a.metric(
-            "Collected Revenue",
-            money(total_revenue)
-        )
-
-        b.metric(
-            "Uncollected Amount",
-            money(total_uncollected)
-        )
-
-        c.metric(
-            "Collection Rate",
-            f"{collection_rate:.1f}%"
-        )
+        a.metric("Collected Revenue", money(total_revenue))
+        b.metric("Uncollected Amount", money(total_uncollected))
+        c.metric("Collection Rate", f"{collection_rate:.1f}%")
 
         revenue_fig = go.Figure(
             data=[
@@ -1691,22 +1585,18 @@ elif page == "Smart Insights":
                         total_revenue,
                         total_uncollected
                     ],
-                    hole=.58,
+                    hole=0.58,
                     marker=dict(
                         colors=[BURGUNDY, GOLD]
                     ),
                     textinfo="label+percent",
-                    textfont=dict(
-                        color=PLUM,
-                        size=13
-                    )
+                    textfont=dict(color=PLUM, size=13)
                 )
             ]
         )
 
         revenue_fig.update_layout(
-            title="Revenue Collection Breakdown",
-            showlegend=True
+            title="Revenue Collection Breakdown"
         )
 
         st.plotly_chart(
@@ -1748,15 +1638,11 @@ elif page == "Smart Insights":
             errors="coerce"
         ).dt.hour
 
-        time_data = time_data.dropna(
-            subset=["hour"]
-        )
+        time_data = time_data.dropna(subset=["hour"])
 
         if not time_data.empty:
 
-            time_data["hour"] = (
-                time_data["hour"].astype(int)
-            )
+            time_data["hour"] = time_data["hour"].astype(int)
 
             hourly = (
                 time_data.groupby("hour")
@@ -1777,18 +1663,18 @@ elif page == "Smart Insights":
                 f"{int(peak['hour']):02d}:00"
             )
 
-            heatmap_data = (
+            heatmap = (
                 time_data.groupby("hour")
                 .size()
                 .reset_index(name="Tickets")
             )
 
-            fig = px.density_heatmap(
-                heatmap_data,
+            fig = px.bar(
+                heatmap,
                 x="hour",
                 y="Tickets",
-                z="Tickets",
-                title="Hourly Ticket Activity Heatmap",
+                title="Hourly Activity Heatmap",
+                color="Tickets",
                 color_continuous_scale=[
                     "#F8E6E5",
                     "#C77B8C",
@@ -1796,14 +1682,19 @@ elif page == "Smart Insights":
                 ]
             )
 
+            fig.update_layout(
+                xaxis_title="Hour of Day",
+                yaxis_title="Ticket Count"
+            )
+
             st.plotly_chart(
-                style_chart(fig, 350),
+                style_chart(fig, 360),
                 use_container_width=True
             )
 
             st.write(
-                "Recommendation: Review the busiest recorded "
-                "hours while planning operational schedules."
+                "Recommendation: Consider observed peak hours "
+                "when reviewing operational schedules."
             )
 
         else:
@@ -1830,9 +1721,7 @@ elif page == "Smart Insights":
 
             if len(values) >= 4 and values.std() > 0:
 
-                threshold = (
-                    values.mean() + 2 * values.std()
-                )
+                threshold = values.mean() + 2 * values.std()
 
                 flagged = data[
                     values > threshold
@@ -1842,14 +1731,18 @@ elif page == "Smart Insights":
 
                     flagged["Detected Metric"] = label
 
+                    flagged["Detected Value"] = (
+                        flagged[column]
+                    )
+
                     unusual_records.append(
                         flagged[
                             [
                                 "ticket",
                                 "route",
                                 "date",
-                                column,
-                                "Detected Metric"
+                                "Detected Metric",
+                                "Detected Value"
                             ]
                         ]
                     )
@@ -1866,7 +1759,7 @@ elif page == "Smart Insights":
                 "were identified for review."
             )
 
-            show_table(
+            st.dataframe(
                 unusual_df,
                 use_container_width=True,
                 hide_index=True
@@ -1880,7 +1773,7 @@ elif page == "Smart Insights":
             )
 
         st.caption(
-            "Statistical flags are only indicators for review. "
+            "Statistical flags are indicators for review. "
             "They do not prove fraud or incorrect transactions."
         )
 
@@ -1892,53 +1785,33 @@ elif page == "Smart Insights":
             unsafe_allow_html=True
         )
 
-        recommendations = []
-
-        if not route_summary.empty:
-
-            recommendations.append(
-                (
-                    "Route Planning",
-                    "Review high-activity routes when planning "
-                    "bus frequency and service schedules."
-                )
-            )
-
-        if total_uncollected > 0:
-
-            recommendations.append(
-                (
-                    "Revenue Review",
-                    "Check uncollected ticket amounts and "
-                    "reconcile the relevant records."
-                )
-            )
-
-        if not time_data.empty:
-
-            recommendations.append(
-                (
-                    "Peak-Hour Planning",
-                    "Use observed peak-hour activity when "
-                    "reviewing operational schedules."
-                )
-            )
-
-        recommendations.append(
+        recommendations = [
+            (
+                "Route Planning",
+                "Review high-activity routes when planning "
+                "bus frequency and service schedules."
+            ),
+            (
+                "Revenue Review",
+                "Check uncollected ticket amounts and "
+                "reconcile relevant records."
+            ),
+            (
+                "Peak-Hour Planning",
+                "Use observed peak-hour activity when "
+                "reviewing operational schedules."
+            ),
             (
                 "Future Data Collection",
                 "Collect ticket records across multiple dates "
-                "to improve trend analysis and future forecasting."
-            )
-        )
-
-        recommendations.append(
+                "to improve trend analysis and forecasting."
+            ),
             (
-                "Monitoring",
+                "Performance Monitoring",
                 "Continue monitoring route-wise passenger "
                 "counts and revenue patterns."
             )
-        )
+        ]
 
         for number, (title, description) in enumerate(
             recommendations,
@@ -1957,7 +1830,7 @@ elif page == "Smart Insights":
 
         st.caption(
             "Smart Insights uses rule-based and statistical analysis "
-            "of the available ticket records. It is not a trained "
+            "of available ticket records. It is not a trained "
             "machine-learning model."
         )
 
@@ -1973,11 +1846,11 @@ elif page == "Smart Insights":
 
 elif page == "AI Website Assistant":
 
-    st.title("🤖 AI Website Assistant")
+    st.title("AI Website Assistant")
 
     st.caption(
-        "Ask questions about the platform, ticket data, "
-        "routes and revenue analysis."
+        "Ask questions about the platform, ticket records, "
+        "routes, passengers and revenue."
     )
 
     st.markdown(
@@ -1986,7 +1859,7 @@ elif page == "AI Website Assistant":
             <h3>How can I help you?</h3>
             <p>
                 Ask me how to use the dashboard, understand the
-                analytics, explore routes or interpret your data.
+                analytics or interpret your uploaded dataset.
             </p>
         </div>
         """,
@@ -2001,175 +1874,171 @@ elif page == "AI Website Assistant":
         q = question.lower().strip()
 
         if not q:
-            return "Please type a question so I can help."
+            return "Please type a question."
 
-        answers = {
+        # General platform questions
 
-            "what is bus analytics":
-                "Bus Analytics is a data analysis platform "
-                "designed to examine bus ticket records. It "
-                "organises ticket information and helps users "
-                "understand passenger activity, route performance "
-                "and revenue collection.",
-
-            "what is dashboard":
-                "The Dashboard provides a quick overview of the "
-                "uploaded ticket dataset. It displays total tickets, "
-                "passengers, collected revenue and ticket trends. "
-                "It also highlights the busiest routes so that "
-                "users can understand overall activity quickly.",
-
-            "what is route analysis":
-                "Route Analysis compares individual routes using "
-                "ticket counts, passenger counts and collected "
-                "revenue. It also calculates a relative route "
-                "performance score using ticket volume, passenger "
-                "volume and revenue.",
-
-            "what is revenue analysis":
-                "Revenue Analysis examines the money collected "
-                "and the amount that remains uncollected. It "
-                "calculates the collection percentage and compares "
-                "revenue across different routes. This can help "
-                "management identify where financial review is needed.",
-
-            "what is passenger insights":
-                "Passenger Insights studies passenger counts "
-                "across routes and stops. It identifies popular "
-                "boarding points and destinations, helping "
-                "management understand passenger movement.",
-
-            "what is demand prediction":
-                "Demand Prediction currently analyses observed "
-                "hourly ticket activity. It identifies the busiest "
-                "recorded hours. More historical dates are needed "
-                "before a reliable future-demand forecasting model "
-                "can be trained.",
-
-            "what is smart insights":
-                "Smart Insights contains six analysis sections: "
-                "Smart Demand Recommendations, Route Intelligence, "
-                "Revenue Intelligence, Peak-Hour Intelligence, "
-                "Unusual Activity Detection and Management "
-                "Recommendations. These sections convert recorded "
-                "data into useful operational observations.",
-
-            "how to upload":
-                "Open Upload Dataset from the navigation panel. "
-                "Choose a CSV file containing the ticket records. "
-                "Preview the uploaded data and select Use This "
-                "Dataset. The uploaded dataset will then be used "
-                "by the dashboard during your current session.",
-
-            "who created":
-                "This project was developed by CRACKER HEADS.",
-
-            "what is project objective":
-                "The objective is to convert bus ticket records "
-                "into useful information. The platform helps "
-                "analyse passenger activity, compare routes, "
-                "understand revenue collection and support "
-                "operational decision-making.",
-
-        }
-
-        for keyword, answer in answers.items():
-
-            if keyword in q:
-                return answer
-
-        # Questions about the actual loaded dataset
-
-        if any(word in q for word in [
-            "total ticket", "number of ticket", "how many ticket"
-        ]):
-
+        if "what is bus analytics" in q:
             return (
-                f"The uploaded dataset contains {len(data):,} "
-                "ticket records."
-                if not data.empty
-                else "No ticket dataset is currently loaded."
+                "Bus Analytics is a ticket data analysis platform. "
+                "It helps examine ticket records, passenger activity, "
+                "route performance and revenue collection. The goal "
+                "is to turn raw ticket information into useful "
+                "operational insights."
             )
 
-        if "passenger" in q and not data.empty:
-
+        if "dashboard" in q:
             return (
-                f"The uploaded dataset contains "
-                f"{int(data['passengers'].sum()):,} passengers. "
-                "Open Passenger Insights to see route-wise "
-                "passenger activity and popular boarding stops."
+                "The Dashboard gives an overview of the uploaded "
+                "ticket dataset. It displays ticket totals, passenger "
+                "counts, collected revenue, booking trends and popular "
+                "routes. It helps users understand overall activity "
+                "without manually examining every ticket."
             )
 
-        if any(word in q for word in [
-            "revenue", "collection", "collected amount"
-        ]) and not data.empty:
+        if "route" in q:
+            if not data.empty:
 
-            return (
-                f"The total collected revenue is "
-                f"{money(data['collected'].sum())}. "
-                f"The uncollected amount is "
-                f"{money(data['uncollected'].sum())}. "
-                "Open Revenue Analysis for a detailed comparison."
-            )
-
-        if "route" in q and not data.empty:
-
-            route_count = data["route"].nunique()
-
-            busiest = (
-                data.groupby("route")
-                .size()
-                .sort_values(ascending=False)
-            )
-
-            if not busiest.empty:
-
-                return (
-                    f"There are {route_count} distinct routes "
-                    f"in the uploaded dataset. The route with "
-                    f"the highest ticket count is {busiest.index[0]}, "
-                    f"with {int(busiest.iloc[0])} tickets. "
-                    "Open Route Analysis for the complete comparison."
+                route_counts = (
+                    data.groupby("route")
+                    .size()
+                    .sort_values(ascending=False)
                 )
 
-        if "help" in q:
+                return (
+                    f"The dataset contains {data['route'].nunique()} "
+                    f"distinct routes. The highest ticket activity is "
+                    f"on {route_counts.index[0]}, with "
+                    f"{int(route_counts.iloc[0])} tickets. Open Route "
+                    f"Analysis to compare all routes and their "
+                    f"performance scores."
+                )
 
             return (
-                "I can explain the main features of this platform. "
-                "For example, ask me about the dashboard, route "
-                "analysis, revenue analysis, passenger insights, "
-                "demand prediction, Smart Insights or how to upload "
-                "a dataset. You can also ask about the statistics "
-                "in the currently uploaded records."
+                "Route Analysis compares ticket counts, passenger "
+                "counts and revenue for each route."
+            )
+
+        if "revenue" in q or "collection" in q:
+
+            if not data.empty:
+
+                return (
+                    f"The total collected amount is "
+                    f"{money(data['collected'].sum())}. The total "
+                    f"uncollected amount is "
+                    f"{money(data['uncollected'].sum())}. Open Revenue "
+                    f"Analysis to see the collection rate and "
+                    f"route-wise comparison."
+                )
+
+            return (
+                "Revenue Analysis compares collected and "
+                "uncollected ticket amounts."
+            )
+
+        if "passenger" in q:
+
+            if not data.empty:
+
+                return (
+                    f"The dataset contains "
+                    f"{int(data['passengers'].sum()):,} passengers. "
+                    "Passenger Insights identifies popular boarding "
+                    "stops, destinations and passenger activity "
+                    "across routes."
+                )
+
+            return (
+                "Passenger Insights shows passenger counts, "
+                "boarding points and popular destinations."
+            )
+
+        if "demand" in q or "prediction" in q:
+
+            return (
+                "Demand Prediction examines observed ticket activity "
+                "by hour and identifies busy periods. Reliable future "
+                "forecasting requires more historical dates than "
+                "the current dataset provides."
+            )
+
+        if "smart insight" in q or "smart analysis" in q:
+
+            return (
+                "Smart Insights contains six sections: Smart Demand "
+                "Recommendations, Route Intelligence, Revenue "
+                "Intelligence, Peak-Hour Intelligence and Heatmap, "
+                "Unusual Activity Detection, and Management "
+                "Recommendations. These analyse the uploaded "
+                "records and provide operational suggestions."
+            )
+
+        if "upload" in q or "dataset" in q:
+
+            return (
+                "Open Upload Dataset from the navigation menu. "
+                "Select your CSV file, preview the records and "
+                "click Use This Dataset. The uploaded data will "
+                "be used during your current session."
+            )
+
+        if "report" in q:
+
+            return (
+                "Open Reports to view the dataset summary and "
+                "route-wise report. You can download both as CSV files."
+            )
+
+        if "ticket" in q:
+
+            return (
+                f"The current dataset contains {len(data):,} ticket "
+                "records. Open Ticket Records to search and examine "
+                "individual records."
+                if not data.empty
+                else "Upload a ticket dataset to examine records."
+            )
+
+        if "objective" in q or "purpose" in q:
+
+            return (
+                "The project's objective is to convert bus ticket "
+                "records into meaningful information. It supports "
+                "route comparison, passenger analysis, revenue "
+                "monitoring and operational decision-making."
+            )
+
+        if "who created" in q or "team" in q:
+
+            return (
+                "This project was developed by CRACKER HEADS."
             )
 
         return (
-            "I couldn't identify the exact question. Please try "
-            "asking about a particular feature, such as Route "
-            "Analysis, Revenue Analysis, Passenger Insights or "
-            "Smart Insights. You can also ask me about the total "
-            "tickets, passenger count or collected revenue in "
-            "the uploaded dataset."
+            "I can help explain the Bus Analytics platform. "
+            "Try asking about the Dashboard, Ticket Records, "
+            "Route Analysis, Revenue Analysis, Passenger Insights, "
+            "Demand Prediction, Smart Insights or Reports."
         )
 
-    # Display previous messages
+    # Display conversation history
 
     for message in st.session_state.assistant_history:
 
         with st.chat_message(message["role"]):
 
-            st.markdown(
-                message["content"]
-            )
+            st.markdown(message["content"])
 
-    # Chat input
+    # Input box
 
     question = st.chat_input(
-        "Type your question here...",
-        key="bus_assistant_input"
+        "Type your question here..."
     )
 
     if question:
+
+        answer = assistant_answer(question)
 
         st.session_state.assistant_history.append(
             {
@@ -2177,8 +2046,6 @@ elif page == "AI Website Assistant":
                 "content": question
             }
         )
-
-        answer = assistant_answer(question)
 
         st.session_state.assistant_history.append(
             {
@@ -2189,18 +2056,15 @@ elif page == "AI Website Assistant":
 
         st.rerun()
 
-    if st.button(
-        "Clear Conversation",
-        key="clear_assistant_chat"
-    ):
+    if st.button("Clear Conversation"):
 
         st.session_state.assistant_history = []
         st.rerun()
 
     st.caption(
-        "The current assistant uses programmed responses and "
-        "dataset-based answers. A live generative AI service "
-        "would require an API integration."
+        "The current assistant uses programmed explanations "
+        "and dataset-based answers. It is not connected to a "
+        "live generative AI service."
     )
 
 
@@ -2210,7 +2074,10 @@ elif page == "AI Website Assistant":
 
 elif page == "Reports":
 
-    st.title("📑 Reports")
+    st.title("Reports")
+    st.caption(
+        "Generate and download summaries from the ticket dataset."
+    )
 
     if not data.empty:
 
@@ -2238,7 +2105,7 @@ elif page == "Reports":
 
         st.markdown("### Dataset Summary")
 
-        show_table(
+        st.dataframe(
             summary,
             use_container_width=True,
             hide_index=True
@@ -2257,21 +2124,21 @@ elif page == "Reports":
 
         st.markdown("### Route Report")
 
-        show_table(
+        st.dataframe(
             route_report,
             use_container_width=True,
             hide_index=True
         )
 
         st.download_button(
-            "⬇️ Download Summary Report",
+            "Download Summary Report",
             summary.to_csv(index=False).encode("utf-8"),
             "bus_summary_report.csv",
             "text/csv"
         )
 
         st.download_button(
-            "⬇️ Download Route Report",
+            "Download Route Report",
             route_report.to_csv(index=False).encode("utf-8"),
             "bus_route_report.csv",
             "text/csv"
@@ -2287,16 +2154,28 @@ elif page == "Reports":
 
 elif page == "Upload Dataset":
 
-    st.title("📂 Upload Dataset")
+    st.title("Upload Dataset")
 
-    st.write(
-        "Upload your bus ticket records in CSV format."
+    st.caption(
+        "Upload bus ticket records in CSV format."
+    )
+
+    st.markdown(
+        """
+        <div class="card">
+            <h3>Upload your ticket data</h3>
+            <p>
+                Select a CSV file containing ticket information.
+                Preview it before applying it to the dashboard.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True
     )
 
     uploaded_file = st.file_uploader(
-        "Choose your CSV file",
-        type=["csv"],
-        key="dataset_upload"
+        "Choose CSV file",
+        type=["csv"]
     )
 
     if uploaded_file is not None:
@@ -2304,19 +2183,16 @@ elif page == "Upload Dataset":
         try:
 
             uploaded_raw = pd.read_csv(uploaded_file)
-
-            preview = prepare_data(
-                uploaded_raw
-            )
+            preview = prepare_data(uploaded_raw)
 
             st.success(
-                f"File loaded successfully. "
+                f"File loaded successfully: "
                 f"{len(preview):,} records found."
             )
 
-            st.markdown("### Preview")
+            st.markdown("### Preview Uploaded Data")
 
-            show_table(
+            st.dataframe(
                 preview.head(20),
                 use_container_width=True,
                 hide_index=True
@@ -2327,12 +2203,10 @@ elif page == "Upload Dataset":
                 type="primary"
             ):
 
-                st.session_state.uploaded_raw = (
-                    uploaded_raw
-                )
+                st.session_state.uploaded_raw = uploaded_raw
 
                 st.success(
-                    "Dataset successfully applied."
+                    "Dataset applied successfully."
                 )
 
                 st.rerun()
@@ -2355,8 +2229,8 @@ elif page == "Upload Dataset":
             st.rerun()
 
     st.caption(
-        "Uploaded data is available for the current Streamlit "
-        "session. It does not permanently replace the repository CSV."
+        "Uploaded data is available for the current session. "
+        "It does not permanently replace the repository CSV."
     )
 
 
@@ -2400,5 +2274,3 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-# ---------------------------- Shared validation ----------------------------
